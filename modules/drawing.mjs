@@ -255,6 +255,7 @@ class BaseClass {
 }
 
 class Rect extends BaseClass {
+	#isFill = true
 	#color = null
 
 	get color() {
@@ -265,14 +266,21 @@ class Rect extends BaseClass {
 		this.#color = value;
 	}
 
-	constructor(leftTop, size, color) {
+	constructor(leftTop, size, color, isFill=true) {
 		super(leftTop, size);
 		this.color = color;
+		this.#isFill = isFill;
 	}
 
 	draw(ctx) {
-		ctx.fillStyle = this.color;
-		ctx.fillRect(this.left, this.top, this.width, this.height)
+		if (this.#isFill) {
+			ctx.fillStyle = this.color;
+			ctx.fillRect(this.left, this.top, this.width, this.height)
+		}
+		else {
+			ctx.strokeStyle = this.color;
+			ctx.strokeRect(this.left, this.top, this.width, this.height);
+		}
 	}
 }
 

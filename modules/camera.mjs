@@ -14,7 +14,7 @@ const Keys = {
 
 class Camera extends BaseClass {
 	#keys = {}
-	#max
+	#max = null
 	#cameraSpeed = 2
 	#isDragging = false
 	#previousPosition = null

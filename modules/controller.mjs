@@ -15,17 +15,25 @@ var ID = 0;
 class Object {
 	#id = ID
 	#shape = null
-	#tab = STARTING_TAB
+	#tabs = []
 
-	constructor(shape, tab) {
+	get shape() {
+		return this.#shape;
+	}
+
+	set shape(value) {
+		this.#shape = value;
+	}
+
+	constructor(shape, tabs) {
 		this.#id = ID;
 		ID += 1;
 		this.#shape = shape;
-		this.#tab = tab;
+		this.#tabs = this.#tabs.concat(tabs);
 	}
 
 	isDraw(tab) {
-		return tab === this.#tab;
+		return this.#tabs.includes(tab);
 	}
 
 	update() {
@@ -38,14 +46,14 @@ class Object {
 }
 
 class Controller {
-	#objects = [];
+	#mapIndex = -1
+	#objects = []
 	#currentTab = Tabs.NO_TAB
 
 	constructor() {
-		var mapObject = new Object(new Dungeon(30, 30, 30), Tabs.TAB_01);
-		var textTab02 = new Object(new Text('Hello World 02!', new Point(200, 150)), Tabs.TAB_02);
-		var rectTab02 = new Object(new Rect(new Point(150, 200), new Point(100, 100), '#0000FF'), Tabs.TAB_02);
-		this.#objects = [mapObject, textTab02, rectTab02];
+		var mapObject = new Object(new Dungeon(40, 40, 20), [Tabs.TAB_01, Tabs.TAB_02]);
+		this.#objects = [mapObject];
+		this.#mapIndex = 0;
 		this.wireTabEvents();
 		this.showTab(STARTING_TAB);
 	} 
@@ -85,7 +93,16 @@ class Controller {
 
 		this.#currentTab = btnTab;
 	
-		document.getElementById(this.getTabNameFromBtnName(btnTab)).style.display = 'block'; 
+		var tabName = this.getTabNameFromBtnName(btnTab);
+		document.getElementById(tabName).style.display = 'block'; 
+		if (btnTab == Tabs.TAB_01) {
+			console.log(btnTab);
+			this.#objects[this.#mapIndex].shape.isGrid = true;
+		}
+		else {
+			var map = this.#objects[this.#mapIndex];
+			this.#objects[this.#mapIndex].shape.isGrid = false;
+		}
 	}
 
 	onTabClicked(tabEventArgs) {
