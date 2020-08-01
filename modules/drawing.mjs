@@ -74,6 +74,28 @@ class Point {
 	}
 }
 
+class Vector extends Point {
+	normalize() {
+		var x = 0;
+		var y = 0;
+		if (this.x != 0) {
+			x = this.x / Math.abs(this.x)
+		}
+		if (this.y != 0) {
+			y = this.y / Math.abs(this.y);
+		}
+		return new Vector(x, y);
+	}
+
+	minus(vector) {
+		return new Vector(this.x - vector.x, this.y - vector.y);
+	}
+
+	toPoint() {
+		return new Point(this.x, this.y);
+	}
+}
+
 class BaseClass {
 	#size = null
 	#left = 0
@@ -226,6 +248,10 @@ class BaseClass {
 		this.cy = this.top + this.height / 2;
 		this.center = new Point(this.cx, this.cy);
 	}
+
+	update() {
+
+	}
 }
 
 class Rect extends BaseClass {
@@ -239,8 +265,8 @@ class Rect extends BaseClass {
 		this.#color = value;
 	}
 
-	constructor(left, top, width, height, color) {
-		super(new Point(left, top), new Point(width, height));
+	constructor(leftTop, size, color) {
+		super(leftTop, size);
 		this.color = color;
 	}
 
@@ -248,6 +274,23 @@ class Rect extends BaseClass {
 		ctx.fillStyle = this.color;
 		ctx.fillRect(this.left, this.top, this.width, this.height)
 	}
+}
+
+class BorderedRect extends Rect {
+	#borderWidth = 0
+ 
+	constructor(leftTop, size, color, borderWidth = 1) {
+		var newSize = new Point(size.x - borderWidth, size.y - borderWidth);
+		super(leftTop, size, color);
+		this.#borderWidth = borderWidth;
+	}
+
+	draw(ctx) {
+		ctx.strokeStye = '#000000';
+		ctx.strokeRect(this.left, this.top, this.width, this.height);
+		super.draw(ctx);
+	}
+
 }
 
 class Sprite extends BaseClass {
@@ -303,6 +346,10 @@ class Text {
 		this.#font = font;
 	}
 
+	update() {
+		
+	}
+
 	draw(ctx) {
 		ctx.fillStyle = 'white';
 		ctx.font = this.#font;
@@ -312,4 +359,4 @@ class Text {
 	}
 }
 
-export { Rect, Text, Sprite, Point };
+export { BorderedRect, Rect, Text, Sprite, Point, Vector, BaseClass };
