@@ -2,7 +2,7 @@
 import { Point  } from './modules/drawing.mjs';
 import { Controller } from './modules/controller.mjs';
 
-const CANVAS_SIZE = new Point(400, 400);
+const CANVAS_SIZE = new Point(600, 600);
 
 class Runtime { 
 	#ctx = null

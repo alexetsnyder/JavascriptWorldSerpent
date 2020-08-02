@@ -96,12 +96,10 @@ class Controller {
 		var tabName = this.getTabNameFromBtnName(btnTab);
 		document.getElementById(tabName).style.display = 'block'; 
 		if (btnTab == Tabs.TAB_01) {
-			console.log(btnTab);
-			this.#objects[this.#mapIndex].shape.isGrid = true;
+			this.#objects[this.#mapIndex].shape.isGrid = false;
 		}
 		else {
-			var map = this.#objects[this.#mapIndex];
-			this.#objects[this.#mapIndex].shape.isGrid = false;
+			this.#objects[this.#mapIndex].shape.isGrid = true;
 		}
 	}
 

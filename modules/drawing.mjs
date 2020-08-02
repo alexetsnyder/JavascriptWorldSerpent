@@ -91,6 +91,14 @@ class Vector extends Point {
 		return new Vector(this.x - vector.x, this.y - vector.y);
 	}
 
+	magnitudeSquared() {
+		return this.x * this.x + this.y * this.y;
+	}
+
+	magnitude() {
+		return Math.sqrt(this.magnitudeSquared());
+	}
+
 	toPoint() {
 		return new Point(this.x, this.y);
 	}
