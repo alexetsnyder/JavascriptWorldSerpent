@@ -1,5 +1,15 @@
 //drawing.mjs
 
+const Color = {
+	RED         : '#FF0000',
+	GREEN       : '#00FF00',
+	BLUE        : '#0000FF',
+	YELLOW      : '#FFFF00',
+	NEON_BLUE   : '#00FFFF',
+	NEON_PINK   : '#FF00FF',
+	NEON_PURPLE : '#9D00FF'
+}
+
 class Point {
 	#x = 0
 	#y = 0
@@ -375,4 +385,4 @@ class Text {
 	}
 }
 
-export { BorderedRect, Rect, Text, Sprite, Point, Vector, BaseClass };
+export { BorderedRect, Rect, Text, Sprite, Point, Vector, BaseClass, Color };
