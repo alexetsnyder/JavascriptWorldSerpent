@@ -34,7 +34,7 @@ body {
   padding: 6px 12px;
   border: 2px solid;
   background-color: slategrey;
-  height: 540px;
+  height: 340px;
   border-top: none;
   display: none;
 }
@@ -50,6 +50,6 @@ body {
 }
 
 #tabDiv {
-  width: 25%;
+  width: 19%;
   float: left;
 }

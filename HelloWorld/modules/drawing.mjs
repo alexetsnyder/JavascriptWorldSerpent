@@ -1,16 +1,5 @@
 //drawing.mjs
 
-const Color = {
-	RED         : '#FF0000',
-	GREEN       : '#00FF00',
-	BLUE        : '#0000FF',
-	YELLOW      : '#FFFF00',
-	NEON_BLUE   : '#00FFFF',
-	NEON_PINK   : '#FF00FF',
-	NEON_PURPLE : '#9D00FF',
-	NEON_GREEN  : '#39ff14'
-}
-
 class Point {
 	#x = 0
 	#y = 0
@@ -82,36 +71,6 @@ class Point {
 	constructor(x, y) {
 		this.x = x;
 		this.y = y;
-	}
-}
-
-class Vector extends Point {
-	normalize() {
-		var x = 0;
-		var y = 0;
-		if (this.x != 0) {
-			x = this.x / Math.abs(this.x)
-		}
-		if (this.y != 0) {
-			y = this.y / Math.abs(this.y);
-		}
-		return new Vector(x, y);
-	}
-
-	minus(vector) {
-		return new Vector(this.x - vector.x, this.y - vector.y);
-	}
-
-	magnitudeSquared() {
-		return this.x * this.x + this.y * this.y;
-	}
-
-	magnitude() {
-		return Math.sqrt(this.magnitudeSquared());
-	}
-
-	toPoint() {
-		return new Point(this.x, this.y);
 	}
 }
 
@@ -267,14 +226,9 @@ class BaseClass {
 		this.cy = this.top + this.height / 2;
 		this.center = new Point(this.cx, this.cy);
 	}
-
-	update() {
-
-	}
 }
 
 class Rect extends BaseClass {
-	#isFill = true
 	#color = null
 
 	get color() {
@@ -285,39 +239,15 @@ class Rect extends BaseClass {
 		this.#color = value;
 	}
 
-	constructor(leftTop, size, color, isFill=true) {
-		super(leftTop, size);
+	constructor(left, top, width, height, color) {
+		super(new Point(left, top), new Point(width, height));
 		this.color = color;
-		this.#isFill = isFill;
 	}
 
 	draw(ctx) {
-		if (this.#isFill) {
-			ctx.fillStyle = this.color;
-			ctx.fillRect(this.left, this.top, this.width, this.height)
-		}
-		else {
-			ctx.strokeStyle = this.color;
-			ctx.strokeRect(this.left, this.top, this.width, this.height);
-		}
+		ctx.fillStyle = this.color;
+		ctx.fillRect(this.left, this.top, this.width, this.height)
 	}
-}
-
-class BorderedRect extends Rect {
-	#borderWidth = 0
- 
-	constructor(leftTop, size, color, borderWidth = 1) {
-		var newSize = new Point(size.x - borderWidth, size.y - borderWidth);
-		super(leftTop, size, color);
-		this.#borderWidth = borderWidth;
-	}
-
-	draw(ctx) {
-		ctx.strokeStye = '#000000';
-		ctx.strokeRect(this.left, this.top, this.width, this.height);
-		super.draw(ctx);
-	}
-
 }
 
 class Sprite extends BaseClass {
@@ -373,10 +303,6 @@ class Text {
 		this.#font = font;
 	}
 
-	update() {
-		
-	}
-
 	draw(ctx) {
 		ctx.fillStyle = 'white';
 		ctx.font = this.#font;
@@ -386,4 +312,4 @@ class Text {
 	}
 }
 
-export { BorderedRect, Rect, Text, Sprite, Point, Vector, BaseClass, Color };
+export { Rect, Text, Sprite, Point };

@@ -1,5 +1,4 @@
 //controller.mjs
-import { Dungeon, ColorGrid } from './map.mjs'
 import { Point, Rect, Text } from './drawing.mjs';
 
 const Tabs = {
@@ -15,55 +14,39 @@ var ID = 0;
 class Object {
 	#id = ID
 	#shape = null
-	#tabs = []
+	#tab = STARTING_TAB
 
-	get shape() {
-		return this.#shape;
-	}
-
-	set shape(value) {
-		this.#shape = value;
-	}
-
-	constructor(shape, tabs) {
+	constructor(shape, tab) {
 		this.#id = ID;
 		ID += 1;
 		this.#shape = shape;
-		this.#tabs = this.#tabs.concat(tabs);
+		this.#tab = tab;
 	}
 
 	isDraw(tab) {
-		return this.#tabs.includes(tab);
-	}
-
-	update() {
-		this.#shape.update();
+		return tab === this.#tab;
 	}
 
 	draw(ctx) {
 		this.#shape.draw(ctx);
 	}
-
-	onSwitchTo() {
-		this.#shape.onSwitchTo();
-	}
 }
 
 class Controller {
-	#mapIndex = -1
-	#objects = []
+	#objects = [];
 	#currentTab = Tabs.NO_TAB
 
 	constructor() {
-		var dungeonObject = new Object(new Dungeon(40, 40, 20, 8), [Tabs.TAB_01]);
-		var colorGridObject = new Object(new ColorGrid(40, 40, 20), [Tabs.TAB_02]);
-		this.#objects = [dungeonObject, colorGridObject];
-		this.#mapIndex = 0;
-		this.wireTabEvents();
+		var textTab01 = new Object(new Text('Hello World 01!', new Point(200, 150)), Tabs.TAB_01);
+		var textTab02 = new Object(new Text('Hello World 02!', new Point(200, 150)), Tabs.TAB_02);
+		var rectTab01 = new Object(new Rect(150, 200, 100, 100, '#FF0000'), Tabs.TAB_01);
+		var rectTab02 = new Object(new Rect(150, 200, 100, 100, '#0000FF'), Tabs.TAB_02);
+		this.#objects = [textTab01, textTab02, rectTab01, rectTab02];
+		this.wire_tab_events();
 		this.showTab(STARTING_TAB);
 	} 
 
-	wireTabEvents() {
+	wire_tab_events() {
 		for (var tab of document.getElementsByClassName('tabLinks')) {
 			tab.onclick = (tabEventArgs) => this.onTabClicked(tabEventArgs);
 		}
@@ -78,11 +61,7 @@ class Controller {
 	}
 
 	update() {
-		for (var obj of this.#objects) {
-			if (obj.isDraw(this.#currentTab)) {
-				obj.update();
-			}
-		}
+
 	}
 
 	showTab(btnTab) {
@@ -98,14 +77,7 @@ class Controller {
 
 		this.#currentTab = btnTab;
 	
-		var tabName = this.getTabNameFromBtnName(btnTab);
-		document.getElementById(tabName).style.display = 'block'; 
-
-		for (var obj of this.#objects) {
-			if (obj.isDraw(this.#currentTab)) {
-				obj.onSwitchTo();
-			}
-		}
+		document.getElementById(this.getTabNameFromBtnName(btnTab)).style.display = 'block'; 
 	}
 
 	onTabClicked(tabEventArgs) {
