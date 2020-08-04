@@ -192,19 +192,26 @@ class Passage extends BaseClass {
 	connectCells(cell1, cell2) {
 		cell1.connect(cell2);
 		if (cell1.room.left == cell2.room.left) {
-			var leftTop = new Point(cell1.room.left, cell1.room.bottom);
-			var v1 = new Vector(leftTop.x, leftTop.y);
-			var v2 = new Vector(cell2.room.left, cell2.room.top);
-			var height = v1.minus(v2).magnitude();
-			var size = new Point(10, height);
-			this.mainRect = new Rect(leftTop, size, DOWN_PASSAGE_COLOR, false);
+			var centerX = cell1.room.cx;
+			if (cell1.room.width > cell2.room.width) {
+				centerX = cell2.room.cx;
+			}
+			var v1 = new Vector(centerX, cell1.room.bottom);
+			var v2 = new Vector(centerX, cell2.room.top);
+			var size = new Point(10, v1.minus(v2).magnitude());
+			this.mainRect = new Rect(v1.toPoint(), size, DOWN_PASSAGE_COLOR, false);
 		}
 		else if (cell1.room.top == cell2.room.top) {
 			var leftTop = new Point(cell1.room.right, cell1.room.top);
-			var v1 = new Vector(leftTop.x, leftTop.y);
-			var v2 = new Vector(cell2.room.left, cell2.room.top);
+			var centerY = cell1.room.cy;
+			if (cell1.room.height > cell2.room.height) {
+				centerY = cell2.room.cy;
+			}
+
+			var v1 = new Vector(leftTop.x, centerY);
+			var v2 = new Vector(cell2.room.left, centerY);
 			var size = new Point(v1.minus(v2).magnitude(), 10);
-			this.mainRect = new Rect(leftTop, size, LEFT_PASSAGE_COLOR, false);
+			this.mainRect = new Rect(v1.toPoint(), size, LEFT_PASSAGE_COLOR, false);
 		}
 		else {
 			this.bentCases(cell1, cell2);
