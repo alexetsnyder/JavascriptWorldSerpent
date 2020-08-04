@@ -6,6 +6,7 @@
 
 	<TITLE> Dungeon Generator! </TITLE>
 
+	<script src="seedrandom.min.js"></script>
 	<script type="module" src="main.js"> </script>
 
 	<link rel="stylesheet" type="text/css" href="index.css">
@@ -33,7 +34,10 @@
 		<div id="tab01" class="tabContent">
 
 			<h2> Generation Info </h2>
-
+			<label>Seed:</label>
+			<input type="text" id="txtSeed">
+			<br>
+			<br>
 			<button id="btnRegenerateDungeon">Regenerate</button>
 			<button id="btnRegenerateUntilBent">Regenerate Until Bent</button>
 

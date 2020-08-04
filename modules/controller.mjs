@@ -1,5 +1,5 @@
 //controller.mjs
-import { Dungeon } from './map.mjs'
+import { Dungeon, ColorGrid } from './map.mjs'
 import { Point, Rect, Text } from './drawing.mjs';
 
 const Tabs = {
@@ -43,6 +43,10 @@ class Object {
 	draw(ctx) {
 		this.#shape.draw(ctx);
 	}
+
+	onSwitchTo() {
+		this.#shape.onSwitchTo();
+	}
 }
 
 class Controller {
@@ -51,8 +55,9 @@ class Controller {
 	#currentTab = Tabs.NO_TAB
 
 	constructor() {
-		var mapObject = new Object(new Dungeon(40, 40, 20), [Tabs.TAB_01, Tabs.TAB_02]);
-		this.#objects = [mapObject];
+		var dungeonObject = new Object(new Dungeon(40, 40, 20, 8), [Tabs.TAB_01]);
+		var colorGridObject = new Object(new ColorGrid(40, 40, 20), [Tabs.TAB_02]);
+		this.#objects = [dungeonObject, colorGridObject];
 		this.#mapIndex = 0;
 		this.wireTabEvents();
 		this.showTab(STARTING_TAB);
@@ -95,11 +100,11 @@ class Controller {
 	
 		var tabName = this.getTabNameFromBtnName(btnTab);
 		document.getElementById(tabName).style.display = 'block'; 
-		if (btnTab == Tabs.TAB_01) {
-			this.#objects[this.#mapIndex].shape.isGrid = false;
-		}
-		else {
-			this.#objects[this.#mapIndex].shape.isGrid = true;
+
+		for (var obj of this.#objects) {
+			if (obj.isDraw(this.#currentTab)) {
+				obj.onSwitchTo();
+			}
 		}
 	}
 

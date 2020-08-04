@@ -38,14 +38,15 @@ class Camera extends BaseClass {
 	constructor(leftTop, size, max) {
 		super(leftTop, size);
 		this.max = new Point(max.x - size.width, max.y - size.height);
-		this.wireEvents();
+		this.reWireEvents();
 	}
 
-	wireEvents(canvas) {
+	reWireEvents(canvas) {
 		var canvas = document.getElementById('drawingArea');
 		canvas.onmousedown = (mouseDownEventArgs) => this.onMouseDown(mouseDownEventArgs);
 		canvas.onmouseup = (mouseUpEventArgs) => this.onMouseUp(mouseUpEventArgs);
 		canvas.onmousemove = (mouseMoveEventArgs) => this.onMouseMove(mouseMoveEventArgs);
+		canvas.onmouseleave = (mouseLeaveEventArgs) => this.onMouseLeave(mouseLeaveEventArgs);
 		document.onkeydown = (keyDownEventArgs) => this.onKeyDown(keyDownEventArgs);
 		document.onkeyup = (keyUpEventArgs) => this.onKeyUp(keyUpEventArgs);
 	}
@@ -95,8 +96,12 @@ class Camera extends BaseClass {
 		if (this.#isDragging) {
 			var newPosition = this.#previousPosition.minus(new Vector(mouseMoveEventArgs.clientX, mouseMoveEventArgs.clientY));
 			var delta = newPosition.normalize();
-			this.move(delta.toPoint());
+			this.move(new Point(delta.x * 1.2, delta.y * 1.2));
 		}
+	}
+
+	onMouseLeave(mouseLeaveEventArgs) {
+		this.#isDragging = false;
 	}
 
 	onKeyDown(keyDownEventArgs) { 
