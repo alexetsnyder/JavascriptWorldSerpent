@@ -124,8 +124,18 @@ const DOWN_PASSAGE_COLOR = Color.NEON_PINK;
 
 class Cell extends BaseClass {
 	room = null
-	#hasRoom = false;
-	#hasPassage = false;
+	cellRect = null
+	#showCells = false
+	#hasRoom = false
+	#hasPassage = false
+
+	get showCells() {
+		return this.#showCells;
+	}
+
+	set showCells(value) {
+		this.#showCells = value;
+	}
 
 	get hasRoom() {
 		return this.#hasRoom;
@@ -143,6 +153,12 @@ class Cell extends BaseClass {
 		this.#hasPassage = value;
 	}
 
+	constructor(leftTop, size, showCells) {
+		super(leftTop, size);
+		this.showCells = showCells;
+		this.cellRect = new Rect(this.leftTop, this.size, Color.RED, false);
+	}
+
 	connect(cell2) {
 		this.hasPassage = true;
 		cell2.hasPassage = true;
@@ -153,14 +169,22 @@ class Cell extends BaseClass {
 		var roomWidth = random.from(this.width / 4, this.width - 10);
 		var roomHeight = random.from(this.height / 4, this.height - 10);
 		var size = new Point(roomWidth, roomHeight);
+		var leftTop = new Point(this.cx - roomWidth / 2, this.cy - roomHeight / 2);
 
-		this.room = new Rect(this.leftTop, size, ROOM_COLOR, false);
+		this.room = new Rect(leftTop, size, ROOM_COLOR, false);
+	}
+
+	toggleShowCells() {
+		this.showCells = !this.showCells;
 	}
 
 	setPos(leftTop) {
 		super.setPos(leftTop);
+		if (!IsNullOrUndefined(this.cellRect)) {
+			this.cellRect.setPos(this.leftTop);
+		}
 		if (!IsNullOrUndefined(this.room)) {
-			this.room.setPos(leftTop);
+			this.room.setPos(new Point(this.cx - this.room.width / 2, this.cy - this.room.height / 2));
 		}
 	}
 
@@ -169,6 +193,9 @@ class Cell extends BaseClass {
 	}
 
 	draw(ctx) {
+		if (this.showCells) {
+			this.cellRect.draw(ctx);
+		}
 		if (!IsNullOrUndefined(this.room)) {
 			this.room.draw(ctx);
 		}
@@ -191,24 +218,16 @@ class Passage extends BaseClass {
 
 	connectCells(cell1, cell2) {
 		cell1.connect(cell2);
-		if (cell1.room.left == cell2.room.left) {
-			var centerX = cell1.room.cx;
-			if (cell1.room.width > cell2.room.width) {
-				centerX = cell2.room.cx;
-			}
+		if (cell1.room.cx == cell2.room.cx) {
+			var centerX = cell1.room.cx - 5;
 			var v1 = new Vector(centerX, cell1.room.bottom);
 			var v2 = new Vector(centerX, cell2.room.top);
 			var size = new Point(10, v1.minus(v2).magnitude());
 			this.mainRect = new Rect(v1.toPoint(), size, DOWN_PASSAGE_COLOR, false);
 		}
-		else if (cell1.room.top == cell2.room.top) {
-			var leftTop = new Point(cell1.room.right, cell1.room.top);
-			var centerY = cell1.room.cy;
-			if (cell1.room.height > cell2.room.height) {
-				centerY = cell2.room.cy;
-			}
-
-			var v1 = new Vector(leftTop.x, centerY);
+		else if (cell1.room.cy == cell2.room.cy) {
+			var centerY = cell1.room.cy - 5;
+			var v1 = new Vector(cell1.room.right, centerY);
 			var v2 = new Vector(cell2.room.left, centerY);
 			var size = new Point(v1.minus(v2).magnitude(), 10);
 			this.mainRect = new Rect(v1.toPoint(), size, LEFT_PASSAGE_COLOR, false);
@@ -220,50 +239,62 @@ class Passage extends BaseClass {
 
 	bentCases(cell1, cell2) {
 		if (cell1.room.left > cell2.room.right && cell1.room.top > cell2.room.bottom) {
-			//console.log('To the right and below');
-			var v1 = new Vector(cell2.room.left, cell2.room.bottom);
-			var v2 = new Vector(cell2.room.left, cell1.room.top);
+			console.log('To the right and below');
+			var centerX = cell2.room.cx - 5;
+			var centerY = cell1.room.cy - 5;
+
+			var v1 = new Vector(centerX, cell2.room.bottom);
+			var v2 = new Vector(centerX, centerY);
 			var size = new Point(10, v1.minus(v2).magnitude());
 			this.mainRect = new Rect(v1.toPoint(), size, DOWN_PASSAGE_COLOR, false);
 
-			v1 = new Vector(cell2.room.left, cell1.room.top);
-			v2 = new Vector(cell1.room.left, cell1.room.top);
+			v1 = new Vector(centerX, centerY);
+			v2 = new Vector(cell1.room.left, centerY);
 			size = new Point(v1.minus(v2).magnitude(), 10);
 			this.bendRect = new Rect(v1.toPoint(), size, LEFT_PASSAGE_COLOR, false);
 		}
 		else if (cell1.room.right < cell2.room.left && cell1.room.top > cell2.room.bottom) {
-			//console.log('To the left and below');
-			var v1 = new Vector(cell1.room.right, cell1.room.top);
-			var v2 = new Vector(cell2.room.left, cell1.room.top);
+			console.log('To the left and below');
+			var centerX = cell2.room.cx - 5;
+			var centerY = cell1.room.cy - 5;
+
+			var v1 = new Vector(cell1.room.right, centerY);
+			var v2 = new Vector(centerX, centerY);
 			var size = new Point(v1.minus(v2).magnitude() + 10, 10);
 			this.mainRect = new Rect(v1.toPoint(), size, LEFT_PASSAGE_COLOR, false);
 
-			v1 = new Vector(cell2.room.left, cell2.room.bottom);
-			v2 = new Vector(cell2.room.left, cell1.room.top);
+			v1 = new Vector(centerX, cell2.room.bottom);
+			v2 = new Vector(centerX, centerY);
 			size = new Point(10, v1.minus(v2).magnitude());
 			this.bendRect = new Rect(v1.toPoint(), size, DOWN_PASSAGE_COLOR, false);
 		}
 		else if (cell1.room.left > cell2.room.right && cell1.room.bottom < cell2.room.top) {
-			//console.log('To the right and above');
-			var v1 = new Vector(cell1.room.left, cell1.room.bottom);
-			var v2 = new Vector(cell1.room.left, cell2.room.top);
+			console.log('To the right and above');
+			var centerX = cell1.room.cx - 5;
+			var centerY = cell2.room.cy - 5;
+
+			var v1 = new Vector(centerX, cell1.room.bottom);
+			var v2 = new Vector(centerX, centerY);
 			var size = new Point(10, v1.minus(v2).magnitude() + 10);
 			this.mainRect = new Rect(v1.toPoint(), size, DOWN_PASSAGE_COLOR, false);
 
-			var v3 = new Vector(cell2.room.right, cell2.room.top);
-			var v4 = new Vector(cell1.room.left, cell2.room.top);
+			var v3 = new Vector(cell2.room.right, centerY);
+			var v4 = new Vector(centerX, centerY);
 			size = new Point(v3.minus(v4).magnitude(), 10);
 			this.bendRect = new Rect(v3.toPoint(), size, LEFT_PASSAGE_COLOR, false);
 		}
 		else {
-			//console.log('To the left and above');
-			var v1 = new Vector(cell1.room.left, cell1.room.bottom);
-			var v2 = new Vector(cell1.room.left, cell2.room.top);
+			console.log('To the left and above');
+			var centerX = cell1.room.cx - 5;
+			var centerY = cell2.room.cy - 5;
+
+			var v1 = new Vector(centerX, cell1.room.bottom);
+			var v2 = new Vector(centerX, centerY);
 			var size = new Point(10, v1.minus(v2).magnitude());
 			this.mainRect = new Rect(v1.toPoint(), size, DOWN_PASSAGE_COLOR, false);
 
-			v1 = new Vector(cell1.room.left, cell2.room.top);
-			v2 = new Vector(cell2.room.left, cell2.room.top);
+			v1 = new Vector(centerX, centerY);
+			v2 = new Vector(cell2.room.left, centerY);
 			size = new Point(v1.minus(v2).magnitude(), 10);
 			this.bendRect = new Rect(v1.toPoint(), size, LEFT_PASSAGE_COLOR, false);
 		}
@@ -402,7 +433,7 @@ class Dungeon extends Grid {
 		var boundingRect = document.getElementById('drawingArea').getBoundingClientRect();
 		var origin = new Point(0, 0);
 		var size = new Point(boundingRect.width, boundingRect.height);
-		var max = new Point(this.cols * this.tileSize, this.rows * this.tileSize);
+		var max = new Point(this.cols * this.tileSize + 14, this.rows * this.tileSize + 14);
 		this.#camera = new Camera(origin, size, max);
 	}
 
@@ -411,6 +442,8 @@ class Dungeon extends Grid {
 		btnRegenerate.onclick = (btnEventArgs) => this.onRegenerateDungeon(btnEventArgs);
 		var btnRegenerateUntilBent = document.getElementById('btnRegenerateUntilBent');
 		btnRegenerateUntilBent.onclick = (btnEventArgs) => this.onRegenerateUntilBent(btnEventArgs);
+		var btnShowCells = document.getElementById('btnShowCells');
+		btnShowCells.onclick = (btnEventArgs) => this.onShowCells(btnEventArgs);
 	}
 
 	initializeCells() {
@@ -418,7 +451,7 @@ class Dungeon extends Grid {
 		var y = 8;
 		for (var i = 0; i < this.cellsPerRow; i++) {
 			for (var j = 0; j < this.cellsPerCol; j++) {
-				this.#cells.push(new Cell(new Point(x, y), new Point(this.cellSize, this.cellSize)));
+				this.#cells.push(new Cell(new Point(x, y), new Point(this.cellSize, this.cellSize), false));
 				y += this.cellSize;
 			}
 			y = 8;
@@ -541,6 +574,12 @@ class Dungeon extends Grid {
 			this.generateCells();
 		}
 		this.hasBentPassage = false;
+	}
+
+	onShowCells(btnEventArgs) {
+		for (var i = 0; i < this.#cells.length; i++) {
+			this.#cells[i].toggleShowCells();
+		}
 	}
 
 	onSwitchTo() {
