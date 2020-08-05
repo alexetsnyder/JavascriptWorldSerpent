@@ -1,5 +1,4 @@
 //map.mjs
-import { Camera } from './camera.mjs';
 import { Random, Range, DrawWithOffset, IsNullOrUndefined } from './system.mjs';
 import { BaseClass, BorderedRect, Vector, Point, Rect, Color } from './drawing.mjs';
 
@@ -55,18 +54,10 @@ class ColorGrid extends Grid {
 	#camera = null;
 	#random = null;
 
-	constructor(rows, cols, tileSize) {
+	constructor(camera, rows, cols, tileSize) {
 		super(rows, cols, tileSize);
 		this.generateGrid();
-		this.setUpCamera();
-	}
-
-	setUpCamera() {
-		var boundingRect = document.getElementById('drawingArea').getBoundingClientRect();
-		var origin = new Point(0, 0);
-		var size = new Point(boundingRect.width, boundingRect.height);
-		var max = new Point(this.cols * this.tileSize, this.rows * this.tileSize);
-		this.#camera = new Camera(origin, size, max);
+		this.#camera = camera;
 	}
 
 	convertToHex(colorPart) {
@@ -101,7 +92,7 @@ class ColorGrid extends Grid {
 	}
 
 	update() {
-		this.#camera.update();
+
 	}
 
 	draw(ctx) {
@@ -111,10 +102,6 @@ class ColorGrid extends Grid {
 				DrawWithOffset(ctx, this.grid[i * this.rows + j], offset);
 			}
 		}
-	}
-
-	onSwitchTo() {
-		this.#camera.reWireEvents();
 	}
 }
 
@@ -416,7 +403,7 @@ class Dungeon extends Grid {
 		this.#hasBentPassage = value;
 	}
 
-	constructor(rows, cols, tileSize, tilesPerCell, minRooms=10, maxRooms=20) {
+	constructor(camera, rows, cols, tileSize, tilesPerCell, minRooms, maxRooms) {
 		super(rows, cols, tileSize);
 		this.tilesPerCell = tilesPerCell;
 		this.cellsPerRow = this.rows / tilesPerCell;
@@ -424,17 +411,10 @@ class Dungeon extends Grid {
 		this.cellSize = tilesPerCell * this.tileSize;
 		this.minRooms = minRooms;
 		this.maxRooms = maxRooms;
+		document.getElementById("txtSeed").value = random.seed;
 		this.generateCells();
-		this.setUpCamera();
+		this.#camera = camera;
 		this.wireEvents();
-	}
-
-	setUpCamera() {
-		var boundingRect = document.getElementById('drawingArea').getBoundingClientRect();
-		var origin = new Point(0, 0);
-		var size = new Point(boundingRect.width, boundingRect.height);
-		var max = new Point(this.cols * this.tileSize + 14, this.rows * this.tileSize + 14);
-		this.#camera = new Camera(origin, size, max);
 	}
 
 	wireEvents() {
@@ -580,11 +560,6 @@ class Dungeon extends Grid {
 		for (var i = 0; i < this.#cells.length; i++) {
 			this.#cells[i].toggleShowCells();
 		}
-	}
-
-	onSwitchTo() {
-		this.#camera.reWireEvents();
-		document.getElementById("txtSeed").value = random.seed;
 	}
 }
 

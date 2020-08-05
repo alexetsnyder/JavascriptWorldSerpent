@@ -1,11 +1,14 @@
 //controller.mjs
+import { Player } from './player.mjs';
+import { Camera } from './camera.mjs';
 import { Dungeon, ColorGrid } from './map.mjs'
 import { Point, Rect, Text } from './drawing.mjs';
 
 const Tabs = {
 	NO_TAB : 'no tab',
 	TAB_01 : 'btnTab01',
-	TAB_02 : 'btnTab02'
+	TAB_02 : 'btnTab02',
+	TAB_03 : 'btnTab03'
 }
 
 const STARTING_TAB = Tabs.TAB_01;
@@ -43,10 +46,6 @@ class Object {
 	draw(ctx) {
 		this.#shape.draw(ctx);
 	}
-
-	onSwitchTo() {
-		this.#shape.onSwitchTo();
-	}
 }
 
 class Controller {
@@ -55,9 +54,22 @@ class Controller {
 	#currentTab = Tabs.NO_TAB
 
 	constructor() {
-		var dungeonObject = new Object(new Dungeon(40, 40, 20, 8), [Tabs.TAB_01]);
-		var colorGridObject = new Object(new ColorGrid(40, 40, 20), [Tabs.TAB_02]);
-		this.#objects = [dungeonObject, colorGridObject];
+		var cols = 40;
+		var rows = 40;
+		var tileSize = 20;
+		var tilesPerCell = 8;
+		var minRooms = 10;
+		var maxRooms = 20;
+		var boundingRect = document.getElementById('drawingArea').getBoundingClientRect();
+		var origin = new Point(0, 0);
+		var size = new Point(boundingRect.width, boundingRect.height);
+		var max = new Point(cols * tileSize + 14, rows * tileSize + 14);
+		var camera = new Camera(origin, size, max);
+		var player = new Player(camera, new Point(200, 200), new Point(10, 10), size);
+		var playerObject = new Object(player, [Tabs.TAB_02])
+		var dungeonObject = new Object(new Dungeon(camera, rows, cols, tileSize, tilesPerCell, minRooms, maxRooms), [Tabs.TAB_01, Tabs.TAB_02]);
+		var colorGridObject = new Object(new ColorGrid(camera, rows, cols, tileSize), [Tabs.TAB_03]);
+		this.#objects = [playerObject, dungeonObject, colorGridObject];
 		this.#mapIndex = 0;
 		this.wireTabEvents();
 		this.showTab(STARTING_TAB);
@@ -100,12 +112,6 @@ class Controller {
 	
 		var tabName = this.getTabNameFromBtnName(btnTab);
 		document.getElementById(tabName).style.display = 'block'; 
-
-		for (var obj of this.#objects) {
-			if (obj.isDraw(this.#currentTab)) {
-				obj.onSwitchTo();
-			}
-		}
 	}
 
 	onTabClicked(tabEventArgs) {

@@ -1,31 +1,11 @@
 //camera.mjs
 import { BaseClass, Point, Vector } from './drawing.mjs';
 
-const Keys = {
-	W_KEY       : 'w',
-	A_KEY       : 'a',
-	S_KEY       : 's', 
-	D_KEY       : 'd',
-	ARROW_UP    : 'ArrowUp',
-	ARROW_DOWN  : 'ArrowDown',
-	ARROW_LEFT  : 'ArrowLeft', 
-	ARROW_RIGHT : 'ArrowRight'
-}
-
 class Camera extends BaseClass {
-	#keys = {}
 	#max = null
 	#cameraSpeed = 2
 	#isDragging = false
 	#previousPosition = null
-
-	get keys() {
-		return this.#keys;
-	}
-
-	set keys(value) {
-		this.#keys = value;
-	}
 
 	get max() {
 		return this.#max;
@@ -47,8 +27,12 @@ class Camera extends BaseClass {
 		canvas.onmouseup = (mouseUpEventArgs) => this.onMouseUp(mouseUpEventArgs);
 		canvas.onmousemove = (mouseMoveEventArgs) => this.onMouseMove(mouseMoveEventArgs);
 		canvas.onmouseleave = (mouseLeaveEventArgs) => this.onMouseLeave(mouseLeaveEventArgs);
-		document.onkeydown = (keyDownEventArgs) => this.onKeyDown(keyDownEventArgs);
-		document.onkeyup = (keyUpEventArgs) => this.onKeyUp(keyUpEventArgs);
+	}
+
+	centerCameraOn(point) {
+		var left = Math.max(0, Math.min(point.x - this.width / 2, this.max.x));
+		var top = Math.max(0, Math.min(point.y - this.height / 2, this.max.y));
+		this.setPos(new Point(left, top));
 	}
 
 	move(delta) {
@@ -64,23 +48,7 @@ class Camera extends BaseClass {
 	}
 
 	update() {
-		var dirX = 0;
-		var dirY = 0;
-		if (Keys.W_KEY in this.keys || Keys.ARROW_UP in this.keys) {
-			dirY = -1;
-		}
-		if (Keys.S_KEY in this.keys || Keys.ARROW_DOWN in this.keys) {
-			dirY = 1;
-		}
-
-		if (Keys.A_KEY in this.keys || Keys.ARROW_LEFT in this.keys) {
-			dirX = -1;
-		}
-		if (Keys.D_KEY in this.keys || Keys.ARROW_RIGHT in this.keys) {
-			dirX = 1;
-		}
-
-		this.move(new Point(dirX, dirY));
+		
 	}
 
 	onMouseDown(mouseDownEventArgs) {
