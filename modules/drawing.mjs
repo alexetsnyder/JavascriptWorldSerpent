@@ -373,6 +373,12 @@ class Text {
 		this.#font = font;
 	}
 
+	setPos(center) {
+		this.#center = center;
+		this.#cx = center.x;
+		this.#cy = center.y;
+	}
+
 	update() {
 		
 	}

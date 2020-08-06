@@ -1,6 +1,6 @@
 //map.mjs
 import { Random, Range, DrawWithOffset, IsNullOrUndefined } from './system.mjs';
-import { BaseClass, BorderedRect, Vector, Point, Rect, Color } from './drawing.mjs';
+import { BaseClass, BorderedRect, Vector, Point, Rect, Color, Text } from './drawing.mjs';
 
 class Grid {
 	#grid = []
@@ -112,9 +112,20 @@ const DOWN_PASSAGE_COLOR = Color.NEON_PINK;
 class Cell extends BaseClass {
 	room = null
 	cellRect = null
+	entranceText = null
 	#showCells = false
 	#hasRoom = false
 	#hasPassage = false
+	#passages = []
+	#isEntrance = false;
+
+	get passages() {
+		return this.#passages;
+	}
+
+	set passages(value) {
+		this.#passages = value;
+	}
 
 	get showCells() {
 		return this.#showCells;
@@ -140,15 +151,25 @@ class Cell extends BaseClass {
 		this.#hasPassage = value;
 	}
 
+	get isEntrance() {
+		return this.#isEntrance;
+	}
+
+	set isEntrance(value) {
+		this.#isEntrance = value;
+	}
+
 	constructor(leftTop, size, showCells) {
 		super(leftTop, size);
 		this.showCells = showCells;
 		this.cellRect = new Rect(this.leftTop, this.size, Color.RED, false);
 	}
 
-	connect(cell2) {
+	connect(cell2, passage) {
 		this.hasPassage = true;
 		cell2.hasPassage = true;
+		this.passages.push(passage);
+		cell2.passages.push(passage);
 	}
 
 	generateRoom() {
@@ -158,6 +179,7 @@ class Cell extends BaseClass {
 		var size = new Point(roomWidth, roomHeight);
 		var leftTop = new Point(this.cx - roomWidth / 2, this.cy - roomHeight / 2);
 
+		this.entranceText = new Text('E', this.center);
 		this.room = new Rect(leftTop, size, ROOM_COLOR, false);
 	}
 
@@ -173,6 +195,9 @@ class Cell extends BaseClass {
 		if (!IsNullOrUndefined(this.room)) {
 			this.room.setPos(new Point(this.cx - this.room.width / 2, this.cy - this.room.height / 2));
 		}
+		if (!IsNullOrUndefined(this.entranceText)) {
+			this.entranceText.setPos(this.center);
+		}
 	}
 
 	update() {
@@ -185,6 +210,9 @@ class Cell extends BaseClass {
 		}
 		if (!IsNullOrUndefined(this.room)) {
 			this.room.draw(ctx);
+		}
+		if (this.isEntrance) {
+			this.entranceText.draw(ctx);
 		}
 	}
 }
@@ -204,7 +232,7 @@ class Passage extends BaseClass {
 	}
 
 	connectCells(cell1, cell2) {
-		cell1.connect(cell2);
+		cell1.connect(cell2, this);
 		if (cell1.room.cx == cell2.room.cx) {
 			var centerX = cell1.room.cx - 5;
 			var v1 = new Vector(centerX, cell1.room.bottom);
@@ -450,6 +478,20 @@ class Dungeon extends Grid {
 			cellList.remove(nextRoomIndex);
 		}
 		this.generatePassages();
+		this.generateEntrance();
+	}
+
+	generateEntrance() {
+		var entrance = null;
+		var minPassages = 10;
+		for (var i = 0; i < this.#cells.length; i++) {
+			var cell = this.#cells[i];
+			if (cell.hasRoom && cell.passages.length < minPassages) {
+				minPassages = cell.passages.length;
+				entrance = cell;
+			}
+		}
+		entrance.isEntrance = true;
 	}
 
 	generatePassages() {
