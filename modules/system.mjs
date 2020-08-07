@@ -1,6 +1,24 @@
 //system.mjs
 import { Point } from './drawing.mjs';
 
+const Tabs = {
+	NO_TAB : 'no tab',
+	TAB_01 : 'btnTab01',
+	TAB_02 : 'btnTab02',
+	TAB_03 : 'btnTab03'
+}
+
+const Keys = {
+	W_KEY       : 'w',
+	A_KEY       : 'a',
+	S_KEY       : 's', 
+	D_KEY       : 'd',
+	ARROW_UP    : 'ArrowUp',
+	ARROW_DOWN  : 'ArrowDown',
+	ARROW_LEFT  : 'ArrowLeft', 
+	ARROW_RIGHT : 'ArrowRight'
+}
+
 class List {
 	#array = []
 
@@ -10,6 +28,22 @@ class List {
 
 	constructor(array = []) {
 		this.#array = array;
+	}
+
+	indexOf(element) {
+		for (var i in this.#array) {
+			if (this.#array[i] === element) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	removeElement(element) {
+		var index = this.indexOf(element);
+		if (index !== -1) {
+			this.remove(index);
+		}
 	}
 
 	remove(index) {
@@ -80,4 +114,4 @@ function IsNullOrUndefined(object) {
 	return object === undefined || object === null;
 }
 
-export { List, IsNullOrUndefined, DrawWithOffset, Random, Range }
+export { List, IsNullOrUndefined, DrawWithOffset, Random, Range, Tabs, Keys }

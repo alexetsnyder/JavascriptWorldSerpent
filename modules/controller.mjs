@@ -1,15 +1,9 @@
 //controller.mjs
-import { Player } from './player.mjs';
+import { Tabs } from './system.mjs';
 import { Camera } from './camera.mjs';
+import { Point } from './drawing.mjs';
+//import { eventSystem } from './events.mjs';
 import { Dungeon, ColorGrid } from './map.mjs'
-import { Point, Rect, Text } from './drawing.mjs';
-
-const Tabs = {
-	NO_TAB : 'no tab',
-	TAB_01 : 'btnTab01',
-	TAB_02 : 'btnTab02',
-	TAB_03 : 'btnTab03'
-}
 
 const STARTING_TAB = Tabs.TAB_01;
 
@@ -60,16 +54,19 @@ class Controller {
 		var tilesPerCell = 8;
 		var minRooms = 10;
 		var maxRooms = 20;
+
 		var boundingRect = document.getElementById('drawingArea').getBoundingClientRect();
 		var origin = new Point(0, 0);
 		var size = new Point(boundingRect.width, boundingRect.height);
 		var max = new Point(cols * tileSize + 14, rows * tileSize + 14);
-		var camera = new Camera(origin, size, max);
-		var player = new Player(camera, new Point(200, 200), new Point(10, 10), size);
-		var playerObject = new Object(player, [Tabs.TAB_02])
-		var dungeonObject = new Object(new Dungeon(camera, rows, cols, tileSize, tilesPerCell, minRooms, maxRooms), [Tabs.TAB_01, Tabs.TAB_02]);
-		var colorGridObject = new Object(new ColorGrid(camera, rows, cols, tileSize), [Tabs.TAB_03]);
-		this.#objects = [playerObject, dungeonObject, colorGridObject];
+
+		var dungeonCamera = new Camera(origin, size, max);
+		max = new Point(cols * tileSize, rows * tileSize);
+		var colorGridCamera = new Camera(origin, size, max);
+
+		var dungeonObject = new Object(new Dungeon(dungeonCamera, rows, cols, tileSize, tilesPerCell, minRooms, maxRooms), [Tabs.TAB_01, Tabs.TAB_02]);
+		var colorGridObject = new Object(new ColorGrid(colorGridCamera, rows, cols, tileSize), [Tabs.TAB_03]);
+		this.#objects = [dungeonObject, colorGridObject];
 		this.#mapIndex = 0;
 		this.wireTabEvents();
 		this.showTab(STARTING_TAB);

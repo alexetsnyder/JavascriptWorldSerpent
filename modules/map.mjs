@@ -96,7 +96,7 @@ class ColorGrid extends Grid {
 	}
 
 	draw(ctx) {
-		var offset = this.#camera.getOffset(new Point(0, 0), this.tileSize);
+		var offset = this.#camera.getOffset();
 		for (var i = 0; i < this.rows; i++) {
 			for (var j = 0; j < this.cols; j++) {
 				DrawWithOffset(ctx, this.grid[i * this.rows + j], offset);
@@ -573,7 +573,7 @@ class Dungeon extends Grid {
 	}
 
 	draw(ctx) {
-		var offset = this.#camera.getOffset(new Point(0, 0), this.tileSize);
+		var offset = this.#camera.getOffset();
 		for (var i = 0; i < this.#passages.length; i++) {
 			DrawWithOffset(ctx, this.#passages[i], offset);
 		}

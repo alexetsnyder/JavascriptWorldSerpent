@@ -1,11 +1,23 @@
 //camera.mjs
+import { Keys } from './system.mjs';
+import { EventTypes, Event, eventSystem} from './events.mjs';
 import { BaseClass, Point, Vector } from './drawing.mjs';
 
 class Camera extends BaseClass {
+	#keys = {}
+	#origin = null
 	#max = null
 	#cameraSpeed = 2
 	#isDragging = false
 	#previousPosition = null
+
+	get keys() {
+		return this.#keys;
+	}
+
+	set keys(value) {
+		this.#keys = value;
+	}
 
 	get max() {
 		return this.#max;
@@ -17,16 +29,19 @@ class Camera extends BaseClass {
 
 	constructor(leftTop, size, max) {
 		super(leftTop, size);
+		this.#origin = leftTop;
 		this.max = new Point(max.x - size.width, max.y - size.height);
-		this.reWireEvents();
+		this.wireEvents();
 	}
 
-	reWireEvents(canvas) {
+	wireEvents(canvas) {
 		var canvas = document.getElementById('drawingArea');
-		canvas.onmousedown = (mouseDownEventArgs) => this.onMouseDown(mouseDownEventArgs);
-		canvas.onmouseup = (mouseUpEventArgs) => this.onMouseUp(mouseUpEventArgs);
-		canvas.onmousemove = (mouseMoveEventArgs) => this.onMouseMove(mouseMoveEventArgs);
-		canvas.onmouseleave = (mouseLeaveEventArgs) => this.onMouseLeave(mouseLeaveEventArgs);
+		eventSystem.add_listener(new Event(EventTypes.MOUSE_DOWN).createEvent((eventArgs) => this.onMouseDown(eventArgs)));
+		eventSystem.add_listener(new Event(EventTypes.MOUSE_UP).createEvent((eventArgs) => this.onMouseUp(eventArgs)));
+		eventSystem.add_listener(new Event(EventTypes.MOUSE_MOVE).createEvent((eventArgs) => this.onMouseMove(eventArgs)));
+		eventSystem.add_listener(new Event(EventTypes.MOUSE_LEAVE).createEvent((eventArgs) => this.onMouseLeave(eventArgs)));
+		eventSystem.add_listener(new Event(EventTypes.KEY_DOWN).createEvent((eventArgs) => this.onKeyDown(eventArgs)));
+		eventSystem.add_listener(new Event(EventTypes.KEY_UP).createEvent((eventArgs) => this.onKeyUp(eventArgs)));
 	}
 
 	centerCameraOn(point) {
@@ -43,12 +58,28 @@ class Camera extends BaseClass {
 		this.setPos(new Point(this.left, this.top));
 	}
 
-	getOffset(origin, tileSize) {
-		return new Point(origin.x * tileSize - this.left, origin.y * tileSize - this.top);
+	getOffset() {
+		return new Point(this.#origin.x - this.left, this.#origin.y - this.top);
 	}
 
 	update() {
-		
+		var dirX = 0;
+		var dirY = 0;
+		if (Keys.W_KEY in this.keys || Keys.ARROW_UP in this.keys) {
+			dirY = -1;
+		}
+		if (Keys.S_KEY in this.keys || Keys.ARROW_DOWN in this.keys) {
+			dirY = 1;
+		}
+
+		if (Keys.A_KEY in this.keys || Keys.ARROW_LEFT in this.keys) {
+			dirX = -1;
+		}
+		if (Keys.D_KEY in this.keys || Keys.ARROW_RIGHT in this.keys) {
+			dirX = 1;
+		}
+
+		this.move(new Point(dirX, dirY));
 	}
 
 	onMouseDown(mouseDownEventArgs) {
