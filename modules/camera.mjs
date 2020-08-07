@@ -83,35 +83,46 @@ class Camera extends BaseClass {
 	}
 
 	onMouseDown(mouseDownEventArgs) {
-		this.#isDragging = true;
-		this.#previousPosition = new Vector(mouseDownEventArgs.clientX, mouseDownEventArgs.clientY);
+		if (!this.isPaused) {
+			this.#isDragging = true;
+			this.#previousPosition = new Vector(mouseDownEventArgs.clientX, mouseDownEventArgs.clientY);
+		}
 	}
 
 	onMouseUp(mouseUpEventArgs) {
-		this.#isDragging = false;
+		if (!this.isPaused) {
+			this.#isDragging = false;
+		}
 	}
 
 	onMouseMove(mouseMoveEventArgs) {
-		if (this.#isDragging) {
-			var newPosition = this.#previousPosition.minus(new Vector(mouseMoveEventArgs.clientX, mouseMoveEventArgs.clientY));
-			var delta = newPosition.normalize();
-			this.move(new Point(delta.x * 1.2, delta.y * 1.2));
+		if (!this.isPaused && this.#isDragging) {
+			var delta = this.#previousPosition.minus(new Vector(mouseMoveEventArgs.clientX, mouseMoveEventArgs.clientY));
+			var left = Math.max(0, Math.min(delta.x, this.max.x));
+			var top = Math.max(0, Math.min(delta.y, this.max.y));
+			this.setPos(new Point(left, top));
 		}
 	}
 
 	onMouseLeave(mouseLeaveEventArgs) {
-		this.#isDragging = false;
+		if (!this.isPaused) {
+			this.#isDragging = false;
+		}
 	}
 
 	onKeyDown(keyDownEventArgs) { 
-		var keyboardKey = keyDownEventArgs.key;
-		this.keys[keyboardKey] = keyboardKey;
+		if (!this.isPaused) {
+			var keyboardKey = keyDownEventArgs.key;
+			this.keys[keyboardKey] = keyboardKey;
+		}
 	}
 
 	onKeyUp(keyUpEventArgs) {
-		var keyboardKey = keyUpEventArgs.key;
-		if (keyboardKey in this.keys) {
-			delete this.keys[keyboardKey];
+		if (!this.isPaused) {
+			var keyboardKey = keyUpEventArgs.key;
+			if (keyboardKey in this.keys) {
+				delete this.keys[keyboardKey];
+			}
 		}
 	}
 }

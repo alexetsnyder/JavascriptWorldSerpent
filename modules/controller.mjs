@@ -33,6 +33,14 @@ class Object {
 		return this.#tabs.includes(tab);
 	}
 
+	pause() {
+		this.#shape.pause();
+	}
+
+	unPause() {
+		this.#shape.unPause();
+	}
+
 	update() {
 		this.#shape.update();
 	}
@@ -94,7 +102,22 @@ class Controller {
 		}
 	}
 
+	pauseAll() {
+		for (var obj of this.#objects) {
+			obj.pause();
+		} 
+	}
+
+	unPause() {
+		for (var obj of this.#objects) {
+			if (obj.isDraw(this.#currentTab)) {
+				obj.unPause();
+			}
+		}
+	}
+
 	showTab(btnTab) {
+		this.pauseAll();
 		var btnTabHTML = document.getElementById(btnTab);
 
 		for (var tabLink of document.getElementsByClassName('tabLinks')) {
@@ -108,7 +131,8 @@ class Controller {
 		this.#currentTab = btnTab;
 	
 		var tabName = this.getTabNameFromBtnName(btnTab);
-		document.getElementById(tabName).style.display = 'block'; 
+		document.getElementById(tabName).style.display = 'block';
+		this.unPause(); 
 	}
 
 	onTabClicked(tabEventArgs) {

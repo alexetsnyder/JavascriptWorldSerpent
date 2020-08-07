@@ -130,6 +130,7 @@ class BaseClass {
 	#cy = 0
 	#width = 0 
 	#height = 0
+	#isPaused = false;
 
 	set size(val) {
 		this.#size = val;
@@ -241,6 +242,14 @@ class BaseClass {
 
 	get rightBottom() {
 		return this.#rightBottom;
+	}
+
+	get isPaused() {
+		return this.#isPaused;
+	}
+
+	set isPaused(value) {
+		this.#isPaused = value;
 	}
 
 	constructor(leftTop, size) {

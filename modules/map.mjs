@@ -91,8 +91,16 @@ class ColorGrid extends Grid {
 		}
 	}
 
-	update() {
+	pause() {
+		this.#camera.isPaused = true;
+	}
 
+	unPause() {
+		this.#camera.isPaused = false;
+	}
+
+	update() {
+		this.#camera.update();
 	}
 
 	draw(ctx) {
@@ -561,6 +569,14 @@ class Dungeon extends Grid {
 			return true;
 		}
 		return false;
+	}
+
+	pause() {
+		this.#camera.isPaused = true;
+	}
+
+	unPause() {
+		this.#camera.isPaused = false;
 	}
 
 	clear() {
