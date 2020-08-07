@@ -382,6 +382,10 @@ class Dungeon extends Grid {
 	#maxRooms = 0
 	#minRooms = 0
 	#hasBentPassage = false;
+	#entrance = null
+	#isShowingCells = false;
+	#magnificationLevels = [-2, -1, 0, 1, 2]
+	#currentLevel = 2
 
 	get cellSize() {
 		return this.#cellSize;
@@ -451,6 +455,7 @@ class Dungeon extends Grid {
 		this.generateCells();
 		this.#camera = camera;
 		this.wireEvents();
+		this.updateDungeonInfo();
 	}
 
 	wireEvents() {
@@ -460,6 +465,21 @@ class Dungeon extends Grid {
 		btnRegenerateUntilBent.onclick = (btnEventArgs) => this.onRegenerateUntilBent(btnEventArgs);
 		var btnShowCells = document.getElementById('btnShowCells');
 		btnShowCells.onclick = (btnEventArgs) => this.onShowCells(btnEventArgs);
+		var btnUnconnected = document.getElementById("btnRegenerateUntilUnconnected");
+		btnUnconnected.onclick = (btnEventArgs) => this.onRegenerateUntilUnconnected(btnEventArgs);
+		var btnMagnifyx2 = document.getElementById("btnMagnifyx2");
+		var btnMagnify2x = document.getElementById("btnMagnify2x");
+		btnMagnifyx2.onclick = (btnEventArgs) => this.onMagnifyx2(btnEventArgs);
+		btnMagnify2x.onclick = (btnEventArgs) => this.onMagnify2x(btnEventArgs);
+	}
+
+	updateDungeonInfo() {
+		document.getElementById('txtRows').value = this.rows;
+		document.getElementById('txtColumns').value = this.cols;
+		document.getElementById('txtTileSize').value = this.tileSize;
+		document.getElementById('txtTilesPerCell').value = this.tilesPerCell;
+		document.getElementById('txtMinRooms').value = this.minRooms;
+		document.getElementById('txtMaxRooms').value = this.maxRooms;
 	}
 
 	initializeCells() {
@@ -571,6 +591,10 @@ class Dungeon extends Grid {
 		return false;
 	}
 
+	isConnected() {
+		return false;
+	}
+
 	pause() {
 		this.#camera.isPaused = true;
 	}
@@ -582,6 +606,20 @@ class Dungeon extends Grid {
 	clear() {
 		this.#cells.length = 0;
 		this.#passages.length = 0;
+	}
+
+	showCells() {
+		for (var i = 0; i < this.#cells.length; i++) {
+			this.#cells[i].toggleShowCells();
+		}
+	}
+
+	regenerate() {
+		this.clear();
+		this.generateCells();
+		if (this.#isShowingCells) {
+			this.showCells();
+		}
 	}
 
 	update() {
@@ -601,22 +639,53 @@ class Dungeon extends Grid {
 
 	onRegenerateDungeon(btnEventArgs) {
 		random.seed = document.getElementById("txtSeed").value;
-		this.clear();
-		this.generateCells();
+		this.regenerate();
 	}
 
 	onRegenerateUntilBent(btnEventArgs) {
 		random.seed = document.getElementById("txtSeed").value;
 		while (this.hasBentPassage === false) {
-			this.clear();
-			this.generateCells();
+			this.regenerate();
 		}
 		this.hasBentPassage = false;
 	}
 
+	onRegenerateUntilUnconnected(btnEventArgs) {
+		random.seed = document.getElementById("txtSeed").value;
+		while (this.isConnected()) {
+			this.regenerate();
+		}
+	}
+
 	onShowCells(btnEventArgs) {
-		for (var i = 0; i < this.#cells.length; i++) {
-			this.#cells[i].toggleShowCells();
+		this.#isShowingCells = !this.#isShowingCells;
+		this.showCells();
+	}
+
+	onMagnifyx2(btnEventArgs) {
+		if (this.#currentLevel > 0)
+		{
+			random.reSeed();
+			this.tileSize /= 2;
+			this.cellSize = this.tilesPerCell * this.tileSize;
+			var max = this.cellsPerRow * this.cellSize - this.#camera.width + 14;
+			this.#camera.max = new Point(max, max);
+			this.#camera.cameraSpeed /= 2;
+			this.regenerate();
+			this.#currentLevel--;
+		}
+	}
+
+	onMagnify2x(btnEventArgs) {
+		if (this.#currentLevel < this.#magnificationLevels.length - 1) {
+			random.reSeed();
+			this.tileSize *= 2;
+			this.cellSize = this.tilesPerCell * this.tileSize;
+			var max = this.cellsPerRow * this.cellSize - this.#camera.width + 14;
+			this.#camera.max = new Point(max, max);
+			this.#camera.cameraSpeed *= 2;
+			this.regenerate();
+			this.#currentLevel++;
 		}
 	}
 }

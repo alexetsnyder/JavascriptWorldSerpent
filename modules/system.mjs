@@ -92,6 +92,10 @@ class Random {
 		this.#rng = new Math.seedrandom(this.seed);
 	}
 
+	reSeed() {
+		this.#rng = new Math.seedrandom(this.seed);
+	}
+
 	from(start, end) {
 		var rngNumber = this.#rng()
 		return Math.floor((rngNumber * (end - start)) + start);

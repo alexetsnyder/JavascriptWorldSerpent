@@ -27,6 +27,14 @@ class Camera extends BaseClass {
 		this.#max = value;
 	}
 
+	get cameraSpeed() {
+		return this.#cameraSpeed;
+	}
+
+	set cameraSpeed(value) {
+		this.#cameraSpeed = value;
+	}
+
 	constructor(leftTop, size, max) {
 		super(leftTop, size);
 		this.#origin = leftTop;
@@ -79,7 +87,9 @@ class Camera extends BaseClass {
 			dirX = 1;
 		}
 
-		this.move(new Point(dirX, dirY));
+		if (!this.#isDragging) {
+			this.move(new Point(dirX, dirY));
+		}
 	}
 
 	onMouseDown(mouseDownEventArgs) {
@@ -97,10 +107,10 @@ class Camera extends BaseClass {
 
 	onMouseMove(mouseMoveEventArgs) {
 		if (!this.isPaused && this.#isDragging) {
-			var delta = this.#previousPosition.minus(new Vector(mouseMoveEventArgs.clientX, mouseMoveEventArgs.clientY));
-			var left = Math.max(0, Math.min(delta.x, this.max.x));
-			var top = Math.max(0, Math.min(delta.y, this.max.y));
-			this.setPos(new Point(left, top));
+			var currentPosition = new Vector(mouseMoveEventArgs.clientX, mouseMoveEventArgs.clientY);
+			var delta = this.#previousPosition.minus(currentPosition);
+			this.move(delta.toPoint());
+			this.#previousPosition = currentPosition;
 		}
 	}
 

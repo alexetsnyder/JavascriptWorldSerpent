@@ -2,7 +2,6 @@
 import { Tabs } from './system.mjs';
 import { Camera } from './camera.mjs';
 import { Point } from './drawing.mjs';
-//import { eventSystem } from './events.mjs';
 import { Dungeon, ColorGrid } from './map.mjs'
 
 const STARTING_TAB = Tabs.TAB_01;
