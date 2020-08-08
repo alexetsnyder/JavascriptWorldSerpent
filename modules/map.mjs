@@ -1,6 +1,6 @@
 //map.mjs
 import { Random, Range, DrawWithOffset, IsNullOrUndefined } from './system.mjs';
-import { BaseClass, BorderedRect, Vector, Point, Rect, Color, Text } from './drawing.mjs';
+import { BaseClass, Vector, Point, Rect, Color, Text } from './drawing.mjs';
 
 class Grid {
 	#grid = []
@@ -48,71 +48,6 @@ class Grid {
 }
 
 const random = new Random();
-
-class ColorGrid extends Grid {
-	#seed = 0;
-	#camera = null;
-	#random = null;
-
-	constructor(camera, rows, cols, tileSize) {
-		super(rows, cols, tileSize);
-		this.generateGrid();
-		this.#camera = camera;
-	}
-
-	convertToHex(colorPart) {
-		var hex = colorPart.toString(16);
-		if (hex.length == 1) {
-			hex = '0' + hex;
-		}
-		return hex;
-	}
-
-	randomColor() {
-		var red = random.from(0, 255);
-		var green = random.from(0, 255);
-		var blue = random.from(0, 255);
-		return `#${this.convertToHex(red)}${this.convertToHex(green)}${this.convertToHex(blue)}`;
-	}
-
-	generateGrid() {
-		var x = 8;
-		var y = 8;
-		for (var i = 0; i < this.rows; i++) {
-			for (var j = 0; j < this.cols; j++) {
-				var color = this.randomColor();
-				var leftTop = new Point(x, y);
-				var size = new Point(this.tileSize, this.tileSize);
-				this.grid.push(new BorderedRect(leftTop, size, color, 1));
-				y = j * this.tileSize + 8;
-			}
-			x = i * this.tileSize + 8;
-			y = 8;
-		}
-	}
-
-	pause() {
-		this.#camera.isPaused = true;
-	}
-
-	unPause() {
-		this.#camera.isPaused = false;
-	}
-
-	update() {
-		this.#camera.update();
-	}
-
-	draw(ctx) {
-		var offset = this.#camera.getOffset();
-		for (var i = 0; i < this.rows; i++) {
-			for (var j = 0; j < this.cols; j++) {
-				DrawWithOffset(ctx, this.grid[i * this.rows + j], offset);
-			}
-		}
-	}
-}
-
 const ROOM_COLOR = Color.YELLOW;
 const LEFT_PASSAGE_COLOR = Color.NEON_BLUE;
 const DOWN_PASSAGE_COLOR = Color.NEON_PINK;
@@ -126,6 +61,15 @@ class Cell extends BaseClass {
 	#hasPassage = false
 	#passages = []
 	#isEntrance = false;
+	#visited = false;
+
+	get visited() {
+		return this.#visited;
+	}
+
+	set visited(value) {
+		this.#visited = value;
+	}
 
 	get passages() {
 		return this.#passages;
@@ -231,6 +175,22 @@ class Passage extends BaseClass {
 	mainRect = null;
 	bendRect = null;
 
+	get cell1() {
+		return this.#cell1;
+	}
+
+	set cell1(value) {
+		this.$cell1 = value;
+	}
+
+	get cell2() {
+		return this.#cell2;
+	}
+
+	set cell2(value) {
+		this.#cell2 = value;
+	}
+
 	constructor(cell1, cell2) {
 		super(new Point(0, 0), new Point(0, 0));
 		this.#cell1 = cell1;
@@ -262,7 +222,7 @@ class Passage extends BaseClass {
 
 	bentCases(cell1, cell2) {
 		if (cell1.room.left > cell2.room.right && cell1.room.top > cell2.room.bottom) {
-			console.log('To the right and below');
+			//console.log('To the right and below');
 			var centerX = cell2.room.cx - 5;
 			var centerY = cell1.room.cy - 5;
 
@@ -277,7 +237,7 @@ class Passage extends BaseClass {
 			this.bendRect = new Rect(v1.toPoint(), size, LEFT_PASSAGE_COLOR, false);
 		}
 		else if (cell1.room.right < cell2.room.left && cell1.room.top > cell2.room.bottom) {
-			console.log('To the left and below');
+			//console.log('To the left and below');
 			var centerX = cell2.room.cx - 5;
 			var centerY = cell1.room.cy - 5;
 
@@ -292,7 +252,7 @@ class Passage extends BaseClass {
 			this.bendRect = new Rect(v1.toPoint(), size, DOWN_PASSAGE_COLOR, false);
 		}
 		else if (cell1.room.left > cell2.room.right && cell1.room.bottom < cell2.room.top) {
-			console.log('To the right and above');
+			//console.log('To the right and above');
 			var centerX = cell1.room.cx - 5;
 			var centerY = cell2.room.cy - 5;
 
@@ -307,7 +267,7 @@ class Passage extends BaseClass {
 			this.bendRect = new Rect(v3.toPoint(), size, LEFT_PASSAGE_COLOR, false);
 		}
 		else {
-			console.log('To the left and above');
+			//console.log('To the left and above');
 			var centerX = cell1.room.cx - 5;
 			var centerY = cell2.room.cy - 5;
 
@@ -452,7 +412,9 @@ class Dungeon extends Grid {
 		this.minRooms = minRooms;
 		this.maxRooms = maxRooms;
 		document.getElementById("txtSeed").value = random.seed;
-		this.generateCells();
+		do {
+			this.generateCells();
+		} while (!this.isConnected());
 		this.#camera = camera;
 		this.wireEvents();
 		this.updateDungeonInfo();
@@ -591,7 +553,39 @@ class Dungeon extends Grid {
 		return false;
 	}
 
+	countCellsRecursive(cell) {
+		var roomNumber = 1;
+		cell.visited = true;
+		if (!IsNullOrUndefined(cell.passages)) {
+			for (var i = 0; i < cell.passages.length; i++) {
+				var passage = cell.passages[i];
+					if (!passage.cell1.visited) {
+						roomNumber += this.countCellsRecursive(passage.cell1);
+					}
+					if (!passage.cell2.visited) {
+						roomNumber += this.countCellsRecursive(passage.cell2);
+					}
+			}
+		}
+		return roomNumber;
+	}
+
 	isConnected() {
+		var entrance = null;
+		var roomNumber = 0;
+		for (var i = 0; i < this.#cells.length; i++) {
+			var cell = this.#cells[i];
+			if (cell.hasRoom) {
+				roomNumber++;
+				if (cell.isEntrance) {
+					entrance = cell;
+				}
+			}
+		}
+
+		if (this.countCellsRecursive(entrance) === roomNumber) {
+			return true;
+		}
 		return false;
 	}
 
@@ -612,6 +606,40 @@ class Dungeon extends Grid {
 		for (var i = 0; i < this.#cells.length; i++) {
 			this.#cells[i].toggleShowCells();
 		}
+	}
+
+	getMagnificationMultiplier() {
+		var value = this.#magnificationLevels[this.#currentLevel];
+		var multiplier = 1;
+		switch (value) {
+			case -2:
+				multiplier = 1/4;
+				break;
+			case -1:
+				multiplier = 1/2;
+				break;
+			case  1:
+				multiplier = 2;
+				break;
+			case  2:
+				multiplier = 4;
+				break; 
+		}
+		return multiplier;
+	}
+
+	getGenerationInfo() {
+		random.seed = document.getElementById("txtSeed").value;
+		this.rows = parseInt(document.getElementById("txtRows").value);
+		this.cols = parseInt(document.getElementById("txtColumns").value);
+		var magnifyMultiplier = this.getMagnificationMultiplier();
+		this.tileSize = parseInt(document.getElementById("txtTileSize").value) * magnifyMultiplier;
+		this.tilesPerCell = parseInt(document.getElementById("txtTilesPerCell").value);
+		this.minRooms = parseInt(document.getElementById("txtMinRooms").value);
+		this.maxRooms = parseInt(document.getElementById("txtMaxRooms").value);
+		this.cellsPerRow = parseInt(this.rows / this.tilesPerCell);
+		this.cellsPerCol = parseInt(this.cols / this.tilesPerCell);
+		this.cellSize = parseInt(this.tilesPerCell * this.tileSize);
 	}
 
 	regenerate() {
@@ -638,12 +666,14 @@ class Dungeon extends Grid {
 	}
 
 	onRegenerateDungeon(btnEventArgs) {
-		random.seed = document.getElementById("txtSeed").value;
-		this.regenerate();
+		this.getGenerationInfo();
+		do {
+			this.regenerate();
+		} while (!this.isConnected());
 	}
 
 	onRegenerateUntilBent(btnEventArgs) {
-		random.seed = document.getElementById("txtSeed").value;
+		this.getGenerationInfo();
 		while (this.hasBentPassage === false) {
 			this.regenerate();
 		}
@@ -651,10 +681,10 @@ class Dungeon extends Grid {
 	}
 
 	onRegenerateUntilUnconnected(btnEventArgs) {
-		random.seed = document.getElementById("txtSeed").value;
-		while (this.isConnected()) {
+		this.getGenerationInfo();
+		do {
 			this.regenerate();
-		}
+		} while (this.isConnected());
 	}
 
 	onShowCells(btnEventArgs) {
@@ -690,4 +720,4 @@ class Dungeon extends Grid {
 	}
 }
 
-export { Dungeon, ColorGrid };
+export { Dungeon };

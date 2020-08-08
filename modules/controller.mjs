@@ -2,7 +2,7 @@
 import { Tabs } from './system.mjs';
 import { Camera } from './camera.mjs';
 import { Point } from './drawing.mjs';
-import { Dungeon, ColorGrid } from './map.mjs'
+import { Dungeon } from './map.mjs'
 
 const STARTING_TAB = Tabs.TAB_01;
 
@@ -50,7 +50,6 @@ class Object {
 }
 
 class Controller {
-	#mapIndex = -1
 	#objects = []
 	#currentTab = Tabs.NO_TAB
 
@@ -68,13 +67,9 @@ class Controller {
 		var max = new Point(cols * tileSize + 14, rows * tileSize + 14);
 
 		var dungeonCamera = new Camera(origin, size, max);
-		max = new Point(cols * tileSize, rows * tileSize);
-		var colorGridCamera = new Camera(origin, size, max);
 
 		var dungeonObject = new Object(new Dungeon(dungeonCamera, rows, cols, tileSize, tilesPerCell, minRooms, maxRooms), [Tabs.TAB_01, Tabs.TAB_02]);
-		var colorGridObject = new Object(new ColorGrid(colorGridCamera, rows, cols, tileSize), [Tabs.TAB_03]);
-		this.#objects = [dungeonObject, colorGridObject];
-		this.#mapIndex = 0;
+		this.#objects = [dungeonObject];
 		this.wireTabEvents();
 		this.showTab(STARTING_TAB);
 	} 
