@@ -1,13 +1,6 @@
 //system.mjs
 import { Point } from './drawing.mjs';
 
-const Tabs = {
-	NO_TAB : 'no tab',
-	TAB_01 : 'btnTab01',
-	TAB_02 : 'btnTab02',
-	TAB_03 : 'btnTab03'
-}
-
 const Keys = {
 	W_KEY       : 'w',
 	A_KEY       : 'a',
@@ -55,16 +48,6 @@ class List {
 	toArray() {
 		return this.#array;
 	}
-}
-
-function Range(startOrEnd, end = 0, step = 1) {
-	var list = new List();
-	var start = (end > 0) ? startOrEnd : 0;
-	end = (end > 0) ? end : startOrEnd;
-	for (var i = start; i < end; i += step) {
-		list.append(i);
-	}
-	return list;
 }
 
 class Random {
@@ -118,4 +101,4 @@ function IsNullOrUndefined(object) {
 	return object === undefined || object === null;
 }
 
-export { List, IsNullOrUndefined, DrawWithOffset, Random, Range, Tabs, Keys }
+export { DrawWithOffset, Random, Keys, List }

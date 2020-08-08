@@ -1,7 +1,6 @@
 //map.mjs
-import { Camera } from './camera.mjs';
 import { Random, Range, DrawWithOffset, IsNullOrUndefined } from './system.mjs';
-import { BaseClass, BorderedRect, Vector, Point, Rect, Color } from './drawing.mjs';
+import { BaseClass, Vector, Point, Rect, Color, Text } from './drawing.mjs';
 
 class Grid {
 	#grid = []
@@ -49,83 +48,44 @@ class Grid {
 }
 
 const random = new Random();
-
-class ColorGrid extends Grid {
-	#seed = 0;
-	#camera = null;
-	#random = null;
-
-	constructor(rows, cols, tileSize) {
-		super(rows, cols, tileSize);
-		this.generateGrid();
-		this.setUpCamera();
-	}
-
-	setUpCamera() {
-		var boundingRect = document.getElementById('drawingArea').getBoundingClientRect();
-		var origin = new Point(0, 0);
-		var size = new Point(boundingRect.width, boundingRect.height);
-		var max = new Point(this.cols * this.tileSize, this.rows * this.tileSize);
-		this.#camera = new Camera(origin, size, max);
-	}
-
-	convertToHex(colorPart) {
-		var hex = colorPart.toString(16);
-		if (hex.length == 1) {
-			hex = '0' + hex;
-		}
-		return hex;
-	}
-
-	randomColor() {
-		var red = random.from(0, 255);
-		var green = random.from(0, 255);
-		var blue = random.from(0, 255);
-		return `#${this.convertToHex(red)}${this.convertToHex(green)}${this.convertToHex(blue)}`;
-	}
-
-	generateGrid() {
-		var x = 8;
-		var y = 8;
-		for (var i = 0; i < this.rows; i++) {
-			for (var j = 0; j < this.cols; j++) {
-				var color = this.randomColor();
-				var leftTop = new Point(x, y);
-				var size = new Point(this.tileSize, this.tileSize);
-				this.grid.push(new BorderedRect(leftTop, size, color, 1));
-				y = j * this.tileSize + 8;
-			}
-			x = i * this.tileSize + 8;
-			y = 8;
-		}
-	}
-
-	update() {
-		this.#camera.update();
-	}
-
-	draw(ctx) {
-		var offset = this.#camera.getOffset(new Point(0, 0), this.tileSize);
-		for (var i = 0; i < this.rows; i++) {
-			for (var j = 0; j < this.cols; j++) {
-				DrawWithOffset(ctx, this.grid[i * this.rows + j], offset);
-			}
-		}
-	}
-
-	onSwitchTo() {
-		this.#camera.reWireEvents();
-	}
-}
-
 const ROOM_COLOR = Color.YELLOW;
 const LEFT_PASSAGE_COLOR = Color.NEON_BLUE;
 const DOWN_PASSAGE_COLOR = Color.NEON_PINK;
 
 class Cell extends BaseClass {
 	room = null
-	#hasRoom = false;
-	#hasPassage = false;
+	cellRect = null
+	entranceText = null
+	#showCells = false
+	#hasRoom = false
+	#hasPassage = false
+	#passages = []
+	#isEntrance = false;
+	#visited = false;
+
+	get visited() {
+		return this.#visited;
+	}
+
+	set visited(value) {
+		this.#visited = value;
+	}
+
+	get passages() {
+		return this.#passages;
+	}
+
+	set passages(value) {
+		this.#passages = value;
+	}
+
+	get showCells() {
+		return this.#showCells;
+	}
+
+	set showCells(value) {
+		this.#showCells = value;
+	}
 
 	get hasRoom() {
 		return this.#hasRoom;
@@ -143,9 +103,25 @@ class Cell extends BaseClass {
 		this.#hasPassage = value;
 	}
 
-	connect(cell2) {
+	get isEntrance() {
+		return this.#isEntrance;
+	}
+
+	set isEntrance(value) {
+		this.#isEntrance = value;
+	}
+
+	constructor(leftTop, size, showCells) {
+		super(leftTop, size);
+		this.showCells = showCells;
+		this.cellRect = new Rect(this.leftTop, this.size, Color.RED, false);
+	}
+
+	connect(cell2, passage) {
 		this.hasPassage = true;
 		cell2.hasPassage = true;
+		this.passages.push(passage);
+		cell2.passages.push(passage);
 	}
 
 	generateRoom() {
@@ -153,14 +129,26 @@ class Cell extends BaseClass {
 		var roomWidth = random.from(this.width / 4, this.width - 10);
 		var roomHeight = random.from(this.height / 4, this.height - 10);
 		var size = new Point(roomWidth, roomHeight);
+		var leftTop = new Point(this.cx - roomWidth / 2, this.cy - roomHeight / 2);
 
-		this.room = new Rect(this.leftTop, size, ROOM_COLOR, false);
+		this.entranceText = new Text('E', this.center);
+		this.room = new Rect(leftTop, size, ROOM_COLOR, false);
+	}
+
+	toggleShowCells() {
+		this.showCells = !this.showCells;
 	}
 
 	setPos(leftTop) {
 		super.setPos(leftTop);
+		if (!IsNullOrUndefined(this.cellRect)) {
+			this.cellRect.setPos(this.leftTop);
+		}
 		if (!IsNullOrUndefined(this.room)) {
-			this.room.setPos(leftTop);
+			this.room.setPos(new Point(this.cx - this.room.width / 2, this.cy - this.room.height / 2));
+		}
+		if (!IsNullOrUndefined(this.entranceText)) {
+			this.entranceText.setPos(this.center);
 		}
 	}
 
@@ -169,8 +157,14 @@ class Cell extends BaseClass {
 	}
 
 	draw(ctx) {
+		if (this.showCells) {
+			this.cellRect.draw(ctx);
+		}
 		if (!IsNullOrUndefined(this.room)) {
 			this.room.draw(ctx);
+		}
+		if (this.isEntrance) {
+			this.entranceText.draw(ctx);
 		}
 	}
 }
@@ -181,6 +175,22 @@ class Passage extends BaseClass {
 	mainRect = null;
 	bendRect = null;
 
+	get cell1() {
+		return this.#cell1;
+	}
+
+	set cell1(value) {
+		this.$cell1 = value;
+	}
+
+	get cell2() {
+		return this.#cell2;
+	}
+
+	set cell2(value) {
+		this.#cell2 = value;
+	}
+
 	constructor(cell1, cell2) {
 		super(new Point(0, 0), new Point(0, 0));
 		this.#cell1 = cell1;
@@ -190,21 +200,20 @@ class Passage extends BaseClass {
 	}
 
 	connectCells(cell1, cell2) {
-		cell1.connect(cell2);
-		if (cell1.room.left == cell2.room.left) {
-			var leftTop = new Point(cell1.room.left, cell1.room.bottom);
-			var v1 = new Vector(leftTop.x, leftTop.y);
-			var v2 = new Vector(cell2.room.left, cell2.room.top);
-			var height = v1.minus(v2).magnitude();
-			var size = new Point(10, height);
-			this.mainRect = new Rect(leftTop, size, DOWN_PASSAGE_COLOR, false);
+		cell1.connect(cell2, this);
+		if (cell1.room.cx == cell2.room.cx) {
+			var centerX = cell1.room.cx - 5;
+			var v1 = new Vector(centerX, cell1.room.bottom);
+			var v2 = new Vector(centerX, cell2.room.top);
+			var size = new Point(10, v1.minus(v2).magnitude());
+			this.mainRect = new Rect(v1.toPoint(), size, DOWN_PASSAGE_COLOR, false);
 		}
-		else if (cell1.room.top == cell2.room.top) {
-			var leftTop = new Point(cell1.room.right, cell1.room.top);
-			var v1 = new Vector(leftTop.x, leftTop.y);
-			var v2 = new Vector(cell2.room.left, cell2.room.top);
+		else if (cell1.room.cy == cell2.room.cy) {
+			var centerY = cell1.room.cy - 5;
+			var v1 = new Vector(cell1.room.right, centerY);
+			var v2 = new Vector(cell2.room.left, centerY);
 			var size = new Point(v1.minus(v2).magnitude(), 10);
-			this.mainRect = new Rect(leftTop, size, LEFT_PASSAGE_COLOR, false);
+			this.mainRect = new Rect(v1.toPoint(), size, LEFT_PASSAGE_COLOR, false);
 		}
 		else {
 			this.bentCases(cell1, cell2);
@@ -214,49 +223,61 @@ class Passage extends BaseClass {
 	bentCases(cell1, cell2) {
 		if (cell1.room.left > cell2.room.right && cell1.room.top > cell2.room.bottom) {
 			//console.log('To the right and below');
-			var v1 = new Vector(cell2.room.left, cell2.room.bottom);
-			var v2 = new Vector(cell2.room.left, cell1.room.top);
+			var centerX = cell2.room.cx - 5;
+			var centerY = cell1.room.cy - 5;
+
+			var v1 = new Vector(centerX, cell2.room.bottom);
+			var v2 = new Vector(centerX, centerY);
 			var size = new Point(10, v1.minus(v2).magnitude());
 			this.mainRect = new Rect(v1.toPoint(), size, DOWN_PASSAGE_COLOR, false);
 
-			v1 = new Vector(cell2.room.left, cell1.room.top);
-			v2 = new Vector(cell1.room.left, cell1.room.top);
+			v1 = new Vector(centerX, centerY);
+			v2 = new Vector(cell1.room.left, centerY);
 			size = new Point(v1.minus(v2).magnitude(), 10);
 			this.bendRect = new Rect(v1.toPoint(), size, LEFT_PASSAGE_COLOR, false);
 		}
 		else if (cell1.room.right < cell2.room.left && cell1.room.top > cell2.room.bottom) {
 			//console.log('To the left and below');
-			var v1 = new Vector(cell1.room.right, cell1.room.top);
-			var v2 = new Vector(cell2.room.left, cell1.room.top);
+			var centerX = cell2.room.cx - 5;
+			var centerY = cell1.room.cy - 5;
+
+			var v1 = new Vector(cell1.room.right, centerY);
+			var v2 = new Vector(centerX, centerY);
 			var size = new Point(v1.minus(v2).magnitude() + 10, 10);
 			this.mainRect = new Rect(v1.toPoint(), size, LEFT_PASSAGE_COLOR, false);
 
-			v1 = new Vector(cell2.room.left, cell2.room.bottom);
-			v2 = new Vector(cell2.room.left, cell1.room.top);
+			v1 = new Vector(centerX, cell2.room.bottom);
+			v2 = new Vector(centerX, centerY);
 			size = new Point(10, v1.minus(v2).magnitude());
 			this.bendRect = new Rect(v1.toPoint(), size, DOWN_PASSAGE_COLOR, false);
 		}
 		else if (cell1.room.left > cell2.room.right && cell1.room.bottom < cell2.room.top) {
 			//console.log('To the right and above');
-			var v1 = new Vector(cell1.room.left, cell1.room.bottom);
-			var v2 = new Vector(cell1.room.left, cell2.room.top);
+			var centerX = cell1.room.cx - 5;
+			var centerY = cell2.room.cy - 5;
+
+			var v1 = new Vector(centerX, cell1.room.bottom);
+			var v2 = new Vector(centerX, centerY);
 			var size = new Point(10, v1.minus(v2).magnitude() + 10);
 			this.mainRect = new Rect(v1.toPoint(), size, DOWN_PASSAGE_COLOR, false);
 
-			var v3 = new Vector(cell2.room.right, cell2.room.top);
-			var v4 = new Vector(cell1.room.left, cell2.room.top);
+			var v3 = new Vector(cell2.room.right, centerY);
+			var v4 = new Vector(centerX, centerY);
 			size = new Point(v3.minus(v4).magnitude(), 10);
 			this.bendRect = new Rect(v3.toPoint(), size, LEFT_PASSAGE_COLOR, false);
 		}
 		else {
 			//console.log('To the left and above');
-			var v1 = new Vector(cell1.room.left, cell1.room.bottom);
-			var v2 = new Vector(cell1.room.left, cell2.room.top);
+			var centerX = cell1.room.cx - 5;
+			var centerY = cell2.room.cy - 5;
+
+			var v1 = new Vector(centerX, cell1.room.bottom);
+			var v2 = new Vector(centerX, centerY);
 			var size = new Point(10, v1.minus(v2).magnitude());
 			this.mainRect = new Rect(v1.toPoint(), size, DOWN_PASSAGE_COLOR, false);
 
-			v1 = new Vector(cell1.room.left, cell2.room.top);
-			v2 = new Vector(cell2.room.left, cell2.room.top);
+			v1 = new Vector(centerX, centerY);
+			v2 = new Vector(cell2.room.left, centerY);
 			size = new Point(v1.minus(v2).magnitude(), 10);
 			this.bendRect = new Rect(v1.toPoint(), size, LEFT_PASSAGE_COLOR, false);
 		}
@@ -321,6 +342,10 @@ class Dungeon extends Grid {
 	#maxRooms = 0
 	#minRooms = 0
 	#hasBentPassage = false;
+	#entrance = null
+	#isShowingCells = false;
+	#magnificationLevels = [-2, -1, 0, 1, 2]
+	#currentLevel = 2
 
 	get cellSize() {
 		return this.#cellSize;
@@ -378,7 +403,7 @@ class Dungeon extends Grid {
 		this.#hasBentPassage = value;
 	}
 
-	constructor(rows, cols, tileSize, tilesPerCell, minRooms=10, maxRooms=20) {
+	constructor(camera, rows, cols, tileSize, tilesPerCell, minRooms, maxRooms) {
 		super(rows, cols, tileSize);
 		this.tilesPerCell = tilesPerCell;
 		this.cellsPerRow = this.rows / tilesPerCell;
@@ -386,17 +411,13 @@ class Dungeon extends Grid {
 		this.cellSize = tilesPerCell * this.tileSize;
 		this.minRooms = minRooms;
 		this.maxRooms = maxRooms;
-		this.generateCells();
-		this.setUpCamera();
+		document.getElementById("txtSeed").value = random.seed;
+		do {
+			this.generateCells();
+		} while (!this.isConnected());
+		this.#camera = camera;
 		this.wireEvents();
-	}
-
-	setUpCamera() {
-		var boundingRect = document.getElementById('drawingArea').getBoundingClientRect();
-		var origin = new Point(0, 0);
-		var size = new Point(boundingRect.width, boundingRect.height);
-		var max = new Point(this.cols * this.tileSize, this.rows * this.tileSize);
-		this.#camera = new Camera(origin, size, max);
+		this.updateDungeonInfo();
 	}
 
 	wireEvents() {
@@ -404,6 +425,23 @@ class Dungeon extends Grid {
 		btnRegenerate.onclick = (btnEventArgs) => this.onRegenerateDungeon(btnEventArgs);
 		var btnRegenerateUntilBent = document.getElementById('btnRegenerateUntilBent');
 		btnRegenerateUntilBent.onclick = (btnEventArgs) => this.onRegenerateUntilBent(btnEventArgs);
+		var btnShowCells = document.getElementById('btnShowCells');
+		btnShowCells.onclick = (btnEventArgs) => this.onShowCells(btnEventArgs);
+		var btnUnconnected = document.getElementById("btnRegenerateUntilUnconnected");
+		btnUnconnected.onclick = (btnEventArgs) => this.onRegenerateUntilUnconnected(btnEventArgs);
+		var btnMagnifyx2 = document.getElementById("btnMagnifyx2");
+		var btnMagnify2x = document.getElementById("btnMagnify2x");
+		btnMagnifyx2.onclick = (btnEventArgs) => this.onMagnifyx2(btnEventArgs);
+		btnMagnify2x.onclick = (btnEventArgs) => this.onMagnify2x(btnEventArgs);
+	}
+
+	updateDungeonInfo() {
+		document.getElementById('txtRows').value = this.rows;
+		document.getElementById('txtColumns').value = this.cols;
+		document.getElementById('txtTileSize').value = this.tileSize;
+		document.getElementById('txtTilesPerCell').value = this.tilesPerCell;
+		document.getElementById('txtMinRooms').value = this.minRooms;
+		document.getElementById('txtMaxRooms').value = this.maxRooms;
 	}
 
 	initializeCells() {
@@ -411,7 +449,7 @@ class Dungeon extends Grid {
 		var y = 8;
 		for (var i = 0; i < this.cellsPerRow; i++) {
 			for (var j = 0; j < this.cellsPerCol; j++) {
-				this.#cells.push(new Cell(new Point(x, y), new Point(this.cellSize, this.cellSize)));
+				this.#cells.push(new Cell(new Point(x, y), new Point(this.cellSize, this.cellSize), false));
 				y += this.cellSize;
 			}
 			y = 8;
@@ -430,6 +468,20 @@ class Dungeon extends Grid {
 			cellList.remove(nextRoomIndex);
 		}
 		this.generatePassages();
+		this.generateEntrance();
+	}
+
+	generateEntrance() {
+		var entrance = null;
+		var minPassages = 10;
+		for (var i = 0; i < this.#cells.length; i++) {
+			var cell = this.#cells[i];
+			if (cell.hasRoom && cell.passages.length < minPassages) {
+				minPassages = cell.passages.length;
+				entrance = cell;
+			}
+		}
+		entrance.isEntrance = true;
 	}
 
 	generatePassages() {
@@ -501,9 +553,101 @@ class Dungeon extends Grid {
 		return false;
 	}
 
+	countCellsRecursive(cell) {
+		var roomNumber = 1;
+		cell.visited = true;
+		if (!IsNullOrUndefined(cell.passages)) {
+			for (var i = 0; i < cell.passages.length; i++) {
+				var passage = cell.passages[i];
+					if (!passage.cell1.visited) {
+						roomNumber += this.countCellsRecursive(passage.cell1);
+					}
+					if (!passage.cell2.visited) {
+						roomNumber += this.countCellsRecursive(passage.cell2);
+					}
+			}
+		}
+		return roomNumber;
+	}
+
+	isConnected() {
+		var entrance = null;
+		var roomNumber = 0;
+		for (var i = 0; i < this.#cells.length; i++) {
+			var cell = this.#cells[i];
+			if (cell.hasRoom) {
+				roomNumber++;
+				if (cell.isEntrance) {
+					entrance = cell;
+				}
+			}
+		}
+
+		if (this.countCellsRecursive(entrance) === roomNumber) {
+			return true;
+		}
+		return false;
+	}
+
+	pause() {
+		this.#camera.isPaused = true;
+	}
+
+	unPause() {
+		this.#camera.isPaused = false;
+	}
+
 	clear() {
 		this.#cells.length = 0;
 		this.#passages.length = 0;
+	}
+
+	showCells() {
+		for (var i = 0; i < this.#cells.length; i++) {
+			this.#cells[i].toggleShowCells();
+		}
+	}
+
+	getMagnificationMultiplier() {
+		var value = this.#magnificationLevels[this.#currentLevel];
+		var multiplier = 1;
+		switch (value) {
+			case -2:
+				multiplier = 1/4;
+				break;
+			case -1:
+				multiplier = 1/2;
+				break;
+			case  1:
+				multiplier = 2;
+				break;
+			case  2:
+				multiplier = 4;
+				break; 
+		}
+		return multiplier;
+	}
+
+	getGenerationInfo() {
+		random.seed = document.getElementById("txtSeed").value;
+		this.rows = parseInt(document.getElementById("txtRows").value);
+		this.cols = parseInt(document.getElementById("txtColumns").value);
+		var magnifyMultiplier = this.getMagnificationMultiplier();
+		this.tileSize = parseInt(document.getElementById("txtTileSize").value) * magnifyMultiplier;
+		this.tilesPerCell = parseInt(document.getElementById("txtTilesPerCell").value);
+		this.minRooms = parseInt(document.getElementById("txtMinRooms").value);
+		this.maxRooms = parseInt(document.getElementById("txtMaxRooms").value);
+		this.cellsPerRow = parseInt(this.rows / this.tilesPerCell);
+		this.cellsPerCol = parseInt(this.cols / this.tilesPerCell);
+		this.cellSize = parseInt(this.tilesPerCell * this.tileSize);
+	}
+
+	regenerate() {
+		this.clear();
+		this.generateCells();
+		if (this.#isShowingCells) {
+			this.showCells();
+		}
 	}
 
 	update() {
@@ -511,7 +655,7 @@ class Dungeon extends Grid {
 	}
 
 	draw(ctx) {
-		var offset = this.#camera.getOffset(new Point(0, 0), this.tileSize);
+		var offset = this.#camera.getOffset();
 		for (var i = 0; i < this.#passages.length; i++) {
 			DrawWithOffset(ctx, this.#passages[i], offset);
 		}
@@ -522,24 +666,58 @@ class Dungeon extends Grid {
 	}
 
 	onRegenerateDungeon(btnEventArgs) {
-		random.seed = document.getElementById("txtSeed").value;
-		this.clear();
-		this.generateCells();
+		this.getGenerationInfo();
+		do {
+			this.regenerate();
+		} while (!this.isConnected());
 	}
 
 	onRegenerateUntilBent(btnEventArgs) {
-		random.seed = document.getElementById("txtSeed").value;
+		this.getGenerationInfo();
 		while (this.hasBentPassage === false) {
-			this.clear();
-			this.generateCells();
+			this.regenerate();
 		}
 		this.hasBentPassage = false;
 	}
 
-	onSwitchTo() {
-		this.#camera.reWireEvents();
-		document.getElementById("txtSeed").value = random.seed;
+	onRegenerateUntilUnconnected(btnEventArgs) {
+		this.getGenerationInfo();
+		do {
+			this.regenerate();
+		} while (this.isConnected());
+	}
+
+	onShowCells(btnEventArgs) {
+		this.#isShowingCells = !this.#isShowingCells;
+		this.showCells();
+	}
+
+	onMagnifyx2(btnEventArgs) {
+		if (this.#currentLevel > 0)
+		{
+			random.reSeed();
+			this.tileSize /= 2;
+			this.cellSize = this.tilesPerCell * this.tileSize;
+			var max = this.cellsPerRow * this.cellSize - this.#camera.width + 14;
+			this.#camera.max = new Point(max, max);
+			this.#camera.cameraSpeed /= 2;
+			this.regenerate();
+			this.#currentLevel--;
+		}
+	}
+
+	onMagnify2x(btnEventArgs) {
+		if (this.#currentLevel < this.#magnificationLevels.length - 1) {
+			random.reSeed();
+			this.tileSize *= 2;
+			this.cellSize = this.tilesPerCell * this.tileSize;
+			var max = this.cellsPerRow * this.cellSize - this.#camera.width + 14;
+			this.#camera.max = new Point(max, max);
+			this.#camera.cameraSpeed *= 2;
+			this.regenerate();
+			this.#currentLevel++;
+		}
 	}
 }
 
-export { Dungeon, ColorGrid };
+export { Dungeon };

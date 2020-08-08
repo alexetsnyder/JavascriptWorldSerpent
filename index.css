@@ -50,6 +50,23 @@ body {
 }
 
 #tabDiv {
-  width: 25%;
+  width: 30%;
   float: left;
+}
+
+.form {
+  margin: 0 auto;
+  width 210px;
+}
+
+.form label { 
+  display: inline-block;
+  text-align: right;
+  float: left; 
+}
+
+.form input {
+  display: inline-block;
+  text-align: left;
+  float: right;
 }

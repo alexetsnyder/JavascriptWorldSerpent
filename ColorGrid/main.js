@@ -2,7 +2,7 @@
 import { Point  } from './modules/drawing.mjs';
 import { Controller } from './modules/controller.mjs';
 
-const CANVAS_SIZE = new Point(600, 600);
+const CANVAS_SIZE = new Point(400, 400);
 
 class Runtime { 
 	#ctx = null
@@ -16,7 +16,7 @@ class Runtime {
 	}
 
 	clear() {
-		this.#ctx.fillStyle = '#010114';
+		this.#ctx.fillStyle = 'black';
 		this.#ctx.fillRect(0, 0, this.#ctx.canvas.width, this.#ctx.canvas.height);
 	}
 

@@ -1,12 +1,8 @@
 //controller.mjs
-import { Dungeon, ColorGrid } from './map.mjs'
-import { Point, Rect, Text } from './drawing.mjs';
-
-const Tabs = {
-	NO_TAB : 'no tab',
-	TAB_01 : 'btnTab01',
-	TAB_02 : 'btnTab02'
-}
+import { Tabs } from './system.mjs';
+import { Camera } from './camera.mjs';
+import { Point } from './drawing.mjs';
+import { Dungeon } from './map.mjs'
 
 const STARTING_TAB = Tabs.TAB_01;
 
@@ -36,6 +32,14 @@ class Object {
 		return this.#tabs.includes(tab);
 	}
 
+	pause() {
+		this.#shape.pause();
+	}
+
+	unPause() {
+		this.#shape.unPause();
+	}
+
 	update() {
 		this.#shape.update();
 	}
@@ -43,22 +47,29 @@ class Object {
 	draw(ctx) {
 		this.#shape.draw(ctx);
 	}
-
-	onSwitchTo() {
-		this.#shape.onSwitchTo();
-	}
 }
 
 class Controller {
-	#mapIndex = -1
 	#objects = []
 	#currentTab = Tabs.NO_TAB
 
 	constructor() {
-		var dungeonObject = new Object(new Dungeon(40, 40, 20, 8), [Tabs.TAB_01]);
-		var colorGridObject = new Object(new ColorGrid(40, 40, 20), [Tabs.TAB_02]);
-		this.#objects = [dungeonObject, colorGridObject];
-		this.#mapIndex = 0;
+		var cols = 40;
+		var rows = 40;
+		var tileSize = 20;
+		var tilesPerCell = 8;
+		var minRooms = 10;
+		var maxRooms = 20;
+
+		var boundingRect = document.getElementById('drawingArea').getBoundingClientRect();
+		var origin = new Point(0, 0);
+		var size = new Point(boundingRect.width, boundingRect.height);
+		var max = new Point(cols * tileSize + 14, rows * tileSize + 14);
+
+		var dungeonCamera = new Camera(origin, size, max);
+
+		var dungeonObject = new Object(new Dungeon(dungeonCamera, rows, cols, tileSize, tilesPerCell, minRooms, maxRooms), [Tabs.TAB_01, Tabs.TAB_02]);
+		this.#objects = [dungeonObject];
 		this.wireTabEvents();
 		this.showTab(STARTING_TAB);
 	} 
@@ -85,7 +96,22 @@ class Controller {
 		}
 	}
 
+	pauseAll() {
+		for (var obj of this.#objects) {
+			obj.pause();
+		} 
+	}
+
+	unPause() {
+		for (var obj of this.#objects) {
+			if (obj.isDraw(this.#currentTab)) {
+				obj.unPause();
+			}
+		}
+	}
+
 	showTab(btnTab) {
+		this.pauseAll();
 		var btnTabHTML = document.getElementById(btnTab);
 
 		for (var tabLink of document.getElementsByClassName('tabLinks')) {
@@ -99,13 +125,8 @@ class Controller {
 		this.#currentTab = btnTab;
 	
 		var tabName = this.getTabNameFromBtnName(btnTab);
-		document.getElementById(tabName).style.display = 'block'; 
-
-		for (var obj of this.#objects) {
-			if (obj.isDraw(this.#currentTab)) {
-				obj.onSwitchTo();
-			}
-		}
+		document.getElementById(tabName).style.display = 'block';
+		this.unPause(); 
 	}
 
 	onTabClicked(tabEventArgs) {

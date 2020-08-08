@@ -6,7 +6,7 @@
 
 	<TITLE> Dungeon Generator! </TITLE>
 
-	<script src="seedrandom.min.js"></script>
+	<script src="ThirdParty/seedrandom.min.js"></script>
 	<script type="module" src="main.js"> </script>
 
 	<link rel="stylesheet" type="text/css" href="index.css">
@@ -27,25 +27,80 @@
 
 			<button class="tabLinks" id="btnTab01"> Dungeon Generator </button>
 
-			<button class="tabLinks" id="btnTab02"> Grid View </button>
+			<button class="tabLinks" id="btnTab02"> Player Camera </button>
 
 		</div>
 
 		<div id="tab01" class="tabContent">
+			
+			<h2> Generation Info: </h2>
 
-			<h2> Generation Info </h2>
-			<label>Seed:</label>
-			<input type="text" id="txtSeed">
-			<br>
-			<br>
-			<button id="btnRegenerateDungeon">Regenerate</button>
-			<button id="btnRegenerateUntilBent">Regenerate Until Bent</button>
+			<div class="form">
+
+				<label>Seed:</label>
+				<input type="text" id="txtSeed">
+
+				<br>
+				<br>
+
+				<label>Rows:</label>
+				<input type="text" id="txtRows">
+
+				<br>
+				<br>
+
+				<label>Columns:</label>
+				<input type="text" id="txtColumns">
+
+				<br>
+				<br>
+
+				<label>Tile Size:</label>
+				<input type="text" id="txtTileSize">
+
+				<br>
+				<br>
+
+				<label>Tiles Per Cell:</label>
+				<input type="text" id="txtTilesPerCell">
+
+				<br>
+				<br>
+
+				<label>Min Rooms:</label>
+				<input type="text" id="txtMinRooms">
+
+				<br>
+				<br>
+
+				<label>Max Rooms:</label>
+				<input type="text" id="txtMaxRooms">
+
+				<br>
+				<br>
+
+				<button id="btnRegenerateDungeon">Regenerate</button>
+				<button id="btnRegenerateUntilBent">Regenerate Until Bent</button>
+
+				<br>
+				<br>
+				
+				<button id="btnShowCells">Show Cells</button>
+				<button id="btnRegenerateUntilUnconnected">Regernerate Until Unconnected</button>
+
+				<br>
+				<br>
+
+				<button id="btnMagnifyx2"> Magnifyx/2 </button>
+				<button id="btnMagnify2x"> Magnify2x </button>
+
+			</div>
 
 		</div>
 
 		<div id="tab02" class="tabContent">
 
-			<h2> Grid Info </h2>
+			<h2> Player: </h2>
 			
 		</div>
 
