@@ -18,7 +18,6 @@ class Game {
 	 }
 
 	 initialGameInfo() {
-	 	console.log('initialGameInfo');
 	 	var html = 'You enter the forest, and find a door <br>';
 	 	html += 'Runes circle the edge, and glow with an  <br>';
 	 	html += 'eerie light. You touch it and the runes  <br>';

@@ -50,13 +50,13 @@ body {
 }
 
 #tabDiv {
-  width: 30%;
+  width: 340px;
   float: left;
 }
 
 .form {
   margin: 0 auto;
-  width 210px;
+  width: 300px;
 }
 
 .form label { 

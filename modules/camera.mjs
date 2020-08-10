@@ -58,6 +58,10 @@ class Camera extends BaseClass {
 		this.setPos(new Point(point.x - this.width / 2, Math.min(point.y - this.height / 2)));
 	}
 
+	reset() {
+		this.setPos(this.#origin);
+	}
+
 	move(delta) {
 		this.left += this.#cameraSpeed * delta.x;
 		this.top += this.#cameraSpeed * delta.y;

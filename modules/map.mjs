@@ -732,7 +732,9 @@ class Dungeon extends Grid {
 	}
 
 	onSwitchTo(switchTabEventArgs) {
-		
+		if (switchTabEventArgs.to === Tabs.TAB_01) {
+			this.#camera.reset();
+		}
 	}
 }
 
