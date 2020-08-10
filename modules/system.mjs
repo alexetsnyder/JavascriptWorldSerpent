@@ -118,4 +118,11 @@ function IsNullOrUndefined(object) {
 	return object === undefined || object === null;
 }
 
-export { List, IsNullOrUndefined, DrawWithOffset, Random, Range, Tabs, Keys }
+function addElement(parentID, elementTag, elementID, html) {
+	var element = document.createElement(elementTag);
+	element.setAttribute('id', elementID);
+	element.innerHTML = html;
+	document.getElementById(parentID).appendChild(element);
+}
+
+export { List, IsNullOrUndefined, DrawWithOffset, Random, Range, Tabs, Keys, addElement };
