@@ -1,5 +1,5 @@
 //map.mjs
-import { Random, Range, DrawWithOffset, IsNullOrUndefined } from './system.mjs';
+import { Random, Range, DrawWithOffset, IsNullOrUndefined, Tabs } from './system.mjs';
 import { BaseClass, Vector, Point, Rect, Color, Text } from './drawing.mjs';
 
 class Grid {
@@ -570,6 +570,18 @@ class Dungeon extends Grid {
 		return roomNumber;
 	}
 
+	getEntrance() {
+		for (var i = 0; i < this.#cells.length; i++) {
+			var cell = this.#cells[i];
+			if (cell.hasRoom) {
+				if (cell.isEntrance) {
+					return cell;
+				}
+			}
+		}
+		return null;
+	}
+
 	isConnected() {
 		var entrance = null;
 		var roomNumber = 0;
@@ -717,6 +729,10 @@ class Dungeon extends Grid {
 			this.regenerate();
 			this.#currentLevel++;
 		}
+	}
+
+	onSwitchTo(switchTabEventArgs) {
+		
 	}
 }
 

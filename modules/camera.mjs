@@ -48,14 +48,14 @@ class Camera extends BaseClass {
 		eventSystem.add_listener(new Event(EventTypes.MOUSE_UP).createEvent((eventArgs) => this.onMouseUp(eventArgs)));
 		eventSystem.add_listener(new Event(EventTypes.MOUSE_MOVE).createEvent((eventArgs) => this.onMouseMove(eventArgs)));
 		eventSystem.add_listener(new Event(EventTypes.MOUSE_LEAVE).createEvent((eventArgs) => this.onMouseLeave(eventArgs)));
-		eventSystem.add_listener(new Event(EventTypes.KEY_DOWN).createEvent((eventArgs) => this.onKeyDown(eventArgs)));
-		eventSystem.add_listener(new Event(EventTypes.KEY_UP).createEvent((eventArgs) => this.onKeyUp(eventArgs)));
+		//eventSystem.add_listener(new Event(EventTypes.KEY_DOWN).createEvent((eventArgs) => this.onKeyDown(eventArgs)));
+		//eventSystem.add_listener(new Event(EventTypes.KEY_UP).createEvent((eventArgs) => this.onKeyUp(eventArgs)));
 	}
 
 	centerCameraOn(point) {
-		var left = Math.max(0, Math.min(point.x - this.width / 2, this.max.x));
-		var top = Math.max(0, Math.min(point.y - this.height / 2, this.max.y));
-		this.setPos(new Point(left, top));
+		//var left = Math.max(0, Math.min(point.x - this.width / 2, this.max.x));
+		//var top = Math.max(0, Math.min(point.y - this.height / 2, this.max.y));
+		this.setPos(new Point(point.x - this.width / 2, Math.min(point.y - this.height / 2)));
 	}
 
 	move(delta) {
@@ -71,25 +71,25 @@ class Camera extends BaseClass {
 	}
 
 	update() {
-		var dirX = 0;
-		var dirY = 0;
-		if (Keys.W_KEY in this.keys || Keys.ARROW_UP in this.keys) {
-			dirY = -1;
-		}
-		if (Keys.S_KEY in this.keys || Keys.ARROW_DOWN in this.keys) {
-			dirY = 1;
-		}
+		// var dirX = 0;
+		// var dirY = 0;
+		// if (Keys.W_KEY in this.keys || Keys.ARROW_UP in this.keys) {
+		// 	dirY = -1;
+		// }
+		// if (Keys.S_KEY in this.keys || Keys.ARROW_DOWN in this.keys) {
+		// 	dirY = 1;
+		// }
 
-		if (Keys.A_KEY in this.keys || Keys.ARROW_LEFT in this.keys) {
-			dirX = -1;
-		}
-		if (Keys.D_KEY in this.keys || Keys.ARROW_RIGHT in this.keys) {
-			dirX = 1;
-		}
+		// if (Keys.A_KEY in this.keys || Keys.ARROW_LEFT in this.keys) {
+		// 	dirX = -1;
+		// }
+		// if (Keys.D_KEY in this.keys || Keys.ARROW_RIGHT in this.keys) {
+		// 	dirX = 1;
+		// }
 
-		if (!this.#isDragging) {
-			this.move(new Point(dirX, dirY));
-		}
+		// if (!this.#isDragging) {
+		// 	this.move(new Point(dirX, dirY));
+		// }
 	}
 
 	onMouseDown(mouseDownEventArgs) {
@@ -120,21 +120,21 @@ class Camera extends BaseClass {
 		}
 	}
 
-	onKeyDown(keyDownEventArgs) { 
-		if (!this.isPaused) {
-			var keyboardKey = keyDownEventArgs.key;
-			this.keys[keyboardKey] = keyboardKey;
-		}
-	}
+	// onKeyDown(keyDownEventArgs) { 
+	// 	if (!this.isPaused) {
+	// 		var keyboardKey = keyDownEventArgs.key;
+	// 		this.keys[keyboardKey] = keyboardKey;
+	// 	}
+	// }
 
-	onKeyUp(keyUpEventArgs) {
-		if (!this.isPaused) {
-			var keyboardKey = keyUpEventArgs.key;
-			if (keyboardKey in this.keys) {
-				delete this.keys[keyboardKey];
-			}
-		}
-	}
+	// onKeyUp(keyUpEventArgs) {
+	// 	if (!this.isPaused) {
+	// 		var keyboardKey = keyUpEventArgs.key;
+	// 		if (keyboardKey in this.keys) {
+	// 			delete this.keys[keyboardKey];
+	// 		}
+	// 	}
+	// }
 }
 
 export { Camera };
