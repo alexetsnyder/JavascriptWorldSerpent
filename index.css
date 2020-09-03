@@ -73,11 +73,11 @@ body {
 
 #cnvHealthBar {
   width: 80%;
-  height: 20px;
+  height: 15px;
   display: inline-block;
   text-align: left;
   float: right;
-  background-color: green;
+  background-color: red;
 }
 
 #playerInput {

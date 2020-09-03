@@ -106,6 +106,8 @@ class Random {
 	}
 }
 
+const random = new Random();
+
 function DrawWithOffset(ctx, object, offset) {
 	var savedPos = object.leftTop;
 	var newPos = new Point(savedPos.x + offset.x, savedPos.y + offset.y);
@@ -125,4 +127,4 @@ function addElement(parentID, elementTag, elementID, html) {
 	document.getElementById(parentID).appendChild(element);
 }
 
-export { List, IsNullOrUndefined, DrawWithOffset, Random, Range, Tabs, Keys, addElement };
+export { List, IsNullOrUndefined, DrawWithOffset, random, Range, Tabs, Keys, addElement };

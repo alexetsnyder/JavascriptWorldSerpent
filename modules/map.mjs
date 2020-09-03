@@ -1,5 +1,5 @@
 //map.mjs
-import { Random, Range, DrawWithOffset, IsNullOrUndefined, Tabs } from './system.mjs';
+import { random, Range, DrawWithOffset, IsNullOrUndefined, Tabs } from './system.mjs';
 import { BaseClass, Vector, Point, Rect, Color, Text } from './drawing.mjs';
 
 class Grid {
@@ -47,7 +47,6 @@ class Grid {
 	}
 }
 
-const random = new Random();
 const ROOM_COLOR = Color.YELLOW;
 const LEFT_PASSAGE_COLOR = Color.NEON_BLUE;
 const DOWN_PASSAGE_COLOR = Color.NEON_PINK;
@@ -60,8 +59,9 @@ class Cell extends BaseClass {
 	#hasRoom = false
 	#hasPassage = false
 	#passages = []
-	#isEntrance = false;
-	#visited = false;
+	#isEntrance = false
+	#visited = false
+	#showRoom = true
 
 	get visited() {
 		return this.#visited;
@@ -109,6 +109,14 @@ class Cell extends BaseClass {
 
 	set isEntrance(value) {
 		this.#isEntrance = value;
+	}
+
+	get showRoom() {
+		return this.#showRoom;
+	}
+
+	set showRoom(value) {
+		this.#showRoom = value;
 	}
 
 	constructor(leftTop, size, showCells) {
@@ -160,10 +168,10 @@ class Cell extends BaseClass {
 		if (this.showCells) {
 			this.cellRect.draw(ctx);
 		}
-		if (!IsNullOrUndefined(this.room)) {
+		if (!IsNullOrUndefined(this.room) && this.showRoom) {
 			this.room.draw(ctx);
 		}
-		if (this.isEntrance) {
+		if (this.isEntrance && this.showRoom) {
 			this.entranceText.draw(ctx);
 		}
 	}
@@ -172,6 +180,7 @@ class Cell extends BaseClass {
 class Passage extends BaseClass {
 	#cell1 = null 
 	#cell2 = null 
+	#showPassage = true;
 	mainRect = null;
 	bendRect = null;
 
@@ -189,6 +198,14 @@ class Passage extends BaseClass {
 
 	set cell2(value) {
 		this.#cell2 = value;
+	}
+
+	get showPassage() {
+		return this.#showPassage;
+	}
+
+	set showPassage(value) {
+		this.#showPassage = value;
 	}
 
 	constructor(cell1, cell2) {
@@ -322,10 +339,10 @@ class Passage extends BaseClass {
 	}
 
 	draw(ctx) {
-		if (!IsNullOrUndefined(this.mainRect)) {
+		if (!IsNullOrUndefined(this.mainRect) && this.showPassage) {
 			this.mainRect.draw(ctx);
 		}
-		if (!IsNullOrUndefined(this.bendRect)) {
+		if (!IsNullOrUndefined(this.bendRect) && this.showPassage) {
 			this.bendRect.draw(ctx);
 		}
 	}
